@@ -6,7 +6,7 @@ mod ffi;
 
 #[derive(Parser)]
 #[command(name = "graphrush")]
-#[command(version = "0.1.1")]
+#[command(version = "0.2.1")]
 #[command(about = "Motor híbrido C++/Rust para análisis de grafos.")]
 struct Cli {
     #[command(subcommand)]
@@ -44,6 +44,59 @@ enum Commands {
         #[arg(long)]
         graph: String,
     },
+
+    Bfs {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: u64,
+
+        #[arg(long, default_value_t = false)]
+        json: bool,
+
+        #[arg(long)]
+        output_csv: Option<String>,
+    },
+
+    Components {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+
+    Pagerank {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value_t = 20)]
+        iterations: u32,
+
+        #[arg(long, default_value_t = 0.85)]
+        damping: f64,
+
+        #[arg(long, default_value_t = 10)]
+        top_k: u64,
+
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+
+    Dijkstra {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: u64,
+
+        #[arg(long, default_value_t = false)]
+        json: bool,
+
+        #[arg(long)]
+        output_csv: Option<String>,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -61,6 +114,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Stats { graph, json } => run_stats(&graph, json)?,
 
         Commands::Validate { graph } => run_validate(&graph)?,
+
+        Commands::Bfs {
+            graph,
+            source,
+            json,
+            output_csv,
+        } => run_bfs(&graph, source, json, output_csv.as_deref())?,
+
+        Commands::Components { graph, json } => run_components(&graph, json)?,
+
+        Commands::Pagerank {
+            graph,
+            iterations,
+            damping,
+            top_k,
+            json,
+        } => run_pagerank(&graph, iterations, damping, top_k, json)?,
+
+        Commands::Dijkstra {
+            graph,
+            source,
+            json,
+            output_csv,
+        } => run_dijkstra(&graph, source, json, output_csv.as_deref())?,
     }
 
     Ok(())
@@ -72,6 +149,12 @@ fn ensure_file_exists(path: &str) -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+fn load_graph_ref(path: &str) -> Result<cxx::UniquePtr<ffi::ffi::CsrGraph>, Box<dyn Error>> {
+    ensure_file_exists(path)?;
+    let graph = ffi::ffi::load_graph(path)?;
+    Ok(graph)
 }
 
 fn run_import(
@@ -93,9 +176,7 @@ fn run_import(
 }
 
 fn run_stats(path: &str, json: bool) -> Result<(), Box<dyn Error>> {
-    ensure_file_exists(path)?;
-
-    let graph = ffi::ffi::load_graph(path)?;
+    let graph = load_graph_ref(path)?;
     let graph_ref = graph
         .as_ref()
         .ok_or("No se pudo obtener una referencia válida al grafo.")?;
@@ -113,9 +194,7 @@ fn run_stats(path: &str, json: bool) -> Result<(), Box<dyn Error>> {
 }
 
 fn run_validate(path: &str) -> Result<(), Box<dyn Error>> {
-    ensure_file_exists(path)?;
-
-    let graph = ffi::ffi::load_graph(path)?;
+    let graph = load_graph_ref(path)?;
     let graph_ref = graph
         .as_ref()
         .ok_or("No se pudo obtener una referencia válida al grafo.")?;
@@ -124,6 +203,98 @@ fn run_validate(path: &str) -> Result<(), Box<dyn Error>> {
         println!("[GraphRush] Validación CSR: correcta.");
     } else {
         println!("[GraphRush] Validación CSR: fallida.");
+    }
+
+    Ok(())
+}
+
+fn run_bfs(
+    path: &str,
+    source: u64,
+    json: bool,
+    output_csv: Option<&str>,
+) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    if json {
+        print!("{}", ffi::ffi::run_bfs_json_report(graph_ref, source));
+    } else {
+        print!("{}", ffi::ffi::run_bfs_report(graph_ref, source));
+    }
+
+    if let Some(csv_path) = output_csv {
+        ffi::ffi::write_bfs_distances_csv(graph_ref, source, csv_path)?;
+        println!("[GraphRush] Distancias BFS guardadas en: {csv_path}");
+    }
+
+    Ok(())
+}
+
+fn run_components(path: &str, json: bool) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    if json {
+        print!("{}", ffi::ffi::run_components_json_report(graph_ref));
+    } else {
+        print!("{}", ffi::ffi::run_components_report(graph_ref));
+    }
+
+    Ok(())
+}
+
+fn run_pagerank(
+    path: &str,
+    iterations: u32,
+    damping: f64,
+    top_k: u64,
+    json: bool,
+) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    if json {
+        print!(
+            "{}",
+            ffi::ffi::run_pagerank_json_report(graph_ref, iterations, damping, top_k)
+        );
+    } else {
+        print!(
+            "{}",
+            ffi::ffi::run_pagerank_top_report(graph_ref, iterations, damping, top_k)
+        );
+    }
+
+    Ok(())
+}
+
+fn run_dijkstra(
+    path: &str,
+    source: u64,
+    json: bool,
+    output_csv: Option<&str>,
+) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    if json {
+        print!("{}", ffi::ffi::run_dijkstra_json_report(graph_ref, source));
+    } else {
+        print!("{}", ffi::ffi::run_dijkstra_report(graph_ref, source));
+    }
+
+    if let Some(csv_path) = output_csv {
+        ffi::ffi::write_dijkstra_distances_csv(graph_ref, source, csv_path)?;
+        println!("[GraphRush] Distancias Dijkstra guardadas en: {csv_path}");
     }
 
     Ok(())

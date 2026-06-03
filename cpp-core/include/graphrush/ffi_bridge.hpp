@@ -29,4 +29,18 @@ double average_degree(const CsrGraph& graph);
 std::uint64_t memory_bytes(const CsrGraph& graph);
 bool validate_graph(const CsrGraph& graph);
 
+rust::String run_bfs_report(const CsrGraph& graph, std::uint64_t source);
+rust::String run_components_report(const CsrGraph& graph);
+rust::String run_pagerank_report(const CsrGraph& graph, std::uint32_t iterations, double damping);
+rust::String run_dijkstra_report(const CsrGraph& graph, std::uint64_t source);
+
+rust::String run_bfs_json_report(const CsrGraph& graph, std::uint64_t source);
+rust::String run_components_json_report(const CsrGraph& graph);
+rust::String run_pagerank_top_report(const CsrGraph& graph, std::uint32_t iterations, double damping, std::uint64_t top_k);
+rust::String run_pagerank_json_report(const CsrGraph& graph, std::uint32_t iterations, double damping, std::uint64_t top_k);
+rust::String run_dijkstra_json_report(const CsrGraph& graph, std::uint64_t source);
+
+void write_bfs_distances_csv(const CsrGraph& graph, std::uint64_t source, rust::Str output_path);
+void write_dijkstra_distances_csv(const CsrGraph& graph, std::uint64_t source, rust::Str output_path);
+
 } // namespace graphrush

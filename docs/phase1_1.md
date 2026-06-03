@@ -1,4 +1,4 @@
-### Fase 1.1 - Métricas completas, salida JSON y validación reforzada
+### Fase 1.1 — Métricas completas, salida JSON y validación reforzada
 
 #### Objetivo
 

@@ -83,3 +83,47 @@ cargo run -- validate \
 #### Verificación de cumplimiento
 
 El archivo `docs/phase1_compliance.md` resume el cumplimiento formal de la Fase 1.
+
+
+#### Fase 2 agregada
+
+La Fase 2 implementa los baselines secuenciales:
+
+```text
+BFS
+Connected Components
+PageRank
+Dijkstra
+```
+
+Comandos:
+
+```bash
+graphrush bfs --graph data/small/example.grcsr --source 0
+graphrush components --graph data/small/example.grcsr
+graphrush pagerank --graph data/small/example.grcsr --iterations 20
+graphrush dijkstra --graph data/small/example.grcsr --source 0
+```
+
+
+#### Fase 2.1 agregada
+
+La Fase 2.1 completa los baselines con:
+
+```text
+comparación documentada con GAPBS
+grafos de control adicionales
+salida JSON para algoritmos
+top-k PageRank
+CSV de distancias BFS
+CSV de distancias Dijkstra
+```
+
+Comandos:
+
+```bash
+graphrush bfs --graph data/small/example.grcsr --source 0 --json
+graphrush bfs --graph data/small/example.grcsr --source 0 --output-csv reports/bfs_distances.csv
+graphrush pagerank --graph data/small/example.grcsr --iterations 20 --top-k 5 --json
+graphrush dijkstra --graph data/small/example.grcsr --source 0 --output-csv reports/dijkstra_distances.csv
+```
