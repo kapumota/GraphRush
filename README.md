@@ -2,57 +2,59 @@
 
 #### Motor híbrido C++/Rust para análisis paralelo de grafos y ciberseguridad
 
-GraphRush es un motor de análisis de grafos en memoria orientado a redes reales. El núcleo algorítmico se implementa en C++20 para controlar memoria, rendimiento y paralelismo. La CLI, validación de parámetros, configuración y reportes se implementan en Rust.
+GraphRush es un motor de análisis de grafos en memoria orientado a redes reales. El núcleo algorítmico se implementa en C++20 y la CLI se implementa en Rust. Esta versión incorpora la **Fase 1.1**, que cierra formalmente la etapa de carga de grafos antes de iniciar la Fase 2.
 
-El proyecto está diseñado para evolucionar desde una Fase 0 mínima con frontera FFI segura hasta una versión funcional con carga de grafos reales, algoritmos secuenciales, algoritmos paralelos, benchmarks reproducibles, caminos mínimos y una aplicación profesional en ciberseguridad.
+#### Estado de esta entrega
 
-#### Objetivo profesional
+Esta entrega incluye:
 
-GraphRush no se presenta como una base de datos de grafos completa. Se presenta como una herramienta de análisis estructural de redes para:
+```text
+Fase 0: arquitectura híbrida C++/Rust y frontera FFI
+Fase 1: carga de grafos reales y representación CSR
+Fase 1.1: métricas completas, salida JSON y validación reforzada
+```
 
-- ciberseguridad,
-- análisis de caminos de ataque,
-- detección de nodos críticos,
-- análisis de dependencias,
-- telecomunicaciones,
-- logística,
-- PageRank y análisis de redes web,
-- procesamiento local de grafos medianos y grandes.
+#### Capacidades actuales
 
-#### Lenguajes
+```text
+GraphLoader
+EdgeListParser
+CSRGraph
+GraphStats
+BinaryGraphWriter
+BinaryGraphReader
+formato binario .grcsr
+CLI Rust con import, stats y validate
+salida humana y salida JSON
+medición de memoria aproximada
+medición de tiempo de carga
+validación de rutas desde Rust
+```
 
-| Capa | Lenguaje | Responsabilidad |
-|---|---|---|
-| Core algorítmico | C++20 | CSRGraph, carga eficiente, algoritmos y paralelismo |
-| CLI y reportes | Rust | comandos, validación, configuración, reportes y salida profesional |
-| Scripts auxiliares | Python | datasets, generación de grafos, gráficos de benchmark |
-| Frontera FFI | cxx | puente tipado entre Rust y C++ |
-
-#### Regla de arquitectura
-
-Rust llama operaciones completas del core C++. C++ ejecuta los kernels críticos. No se cruza la frontera FFI por cada arista ni por cada vecino.
-
-#### Fases del proyecto
-
-| Fase | Nombre | Resultado |
-|---:|---|---|
-| 0 | Arquitectura híbrida C++/Rust y FFI | frontera técnica segura y skeleton funcional |
-| 1 | GraphLoader + CSRGraph | carga de grafos reales |
-| 2 | Algoritmos secuenciales | BFS, PageRank, componentes y Dijkstra |
-| 3 | Paralelismo controlado | PageRank, BFS y componentes paralelos |
-| 4 | Benchmark Engine | reportes reproducibles |
-| 5 | Delta-Stepping SSSP | caminos mínimos paralelos |
-| 6 | Security Pack | aplicación profesional en ciberseguridad |
-| 7 | Release final | documentación, tests, benchmarks y demo completa |
-
-#### Demo mínima de Fase 0
+#### Comandos principales
 
 ```bash
 cd rust-cli
-cargo run -- stats --graph ../data/small/example.edges
+
+cargo run -- import \
+  --input ../data/small/example.edges \
+  --format snap \
+  --output ../data/small/example.grcsr \
+  --directed \
+  --deduplicate
+
+cargo run -- stats \
+  --graph ../data/small/example.grcsr
+
+cargo run -- stats \
+  --graph ../data/small/example.grcsr \
+  --json
+
+cargo run -- validate \
+  --graph ../data/small/example.grcsr
 ```
 
-Salida esperada:
+#### Salida esperada de stats
 
 ```text
 [GraphRush] Grafo cargado correctamente.
@@ -60,17 +62,24 @@ Salida esperada:
 [GraphRush] Aristas: 8
 [GraphRush] Grado máximo: 2
 [GraphRush] Grado promedio: 1.3333
+[GraphRush] Memoria aproximada: 120 bytes
+[GraphRush] Tiempo de carga: 0.12 ms
 ```
 
-#### Comandos de apoyo
+#### Fases del proyecto
 
-```bash
-make build-rust
-make demo
-make build-cpp
-make test-cpp
-```
+| Fase | Nombre | Resultado |
+|---:|---|---|
+| 0 | Arquitectura híbrida C++/Rust y FFI | frontera técnica segura |
+| 1 | GraphLoader + CSRGraph | carga de grafos reales |
+| 1.1 | Métricas, JSON y validación | cierre profesional de ingesta |
+| 2 | Algoritmos secuenciales | BFS, PageRank, componentes y Dijkstra |
+| 3 | Paralelismo controlado | PageRank, BFS y componentes paralelos |
+| 4 | Benchmark Engine | evaluación reproducible |
+| 5 | Delta-Stepping SSSP | caminos mínimos paralelos |
+| 6 | Security Pack | aplicación profesional en ciberseguridad |
+| 7 | Release final | documentación, tests, benchmarks y demo |
 
-#### Estado de esta entrega
+#### Verificación de cumplimiento
 
-Esta entrega deja lista la Fase 0: arquitectura, documentación, estructura de repositorio, skeleton C++20, skeleton Rust y frontera FFI mediante `cxx`.
+El archivo `docs/phase1_compliance.md` resume el cumplimiento formal de la Fase 1.
