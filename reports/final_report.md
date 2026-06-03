@@ -36,12 +36,12 @@ Security SSSP
 
 ```text
 README.md
-DESIGN.md
-ARCHITECTURE.md
-FFI_BOUNDARY.md
-EVALUATION.md
-SECURITY_ANALYSIS.md
-BENCHMARKS.md
+docs/archive/references/design.md
+docs/architecture.md
+docs/ffi_boundary.md
+docs/evaluation.md
+docs/security_analysis.md
+docs/benchmarks.md
 CHANGELOG.md
 LICENSE
 docs/screenshots/

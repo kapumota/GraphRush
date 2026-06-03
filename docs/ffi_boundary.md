@@ -1,36 +1,31 @@
-### Frontera FFI de GraphRush
+### GraphRush — Frontera FFI
 
 #### Objetivo
 
-Mantener una frontera segura y de alto nivel entre Rust y C++.
+Mantener una frontera segura, estable y de alto nivel entre Rust y C++.
 
-#### Principio principal
+#### Principio
 
-Rust invoca operaciones completas y C++ ejecuta el trabajo intensivo.
+Rust no cruza la frontera FFI por cada arista. Rust llama operaciones de alto nivel y el core C++ ejecuta el trabajo intensivo.
 
-#### API actual
-
-```text
-load_graph(path)
-import_graph(input, output, format, directed, deduplicate)
-node_count(graph)
-edge_count(graph)
-max_degree(graph)
-average_degree(graph)
-memory_bytes(graph)
-validate_graph(graph)
-```
-
-#### API futura
+#### Operaciones expuestas
 
 ```text
-run_bfs(graph, source, threads)
-run_pagerank(graph, iterations, threads, damping)
-run_components(graph, threads)
-run_dijkstra(graph, source)
-run_delta_stepping(graph, source, delta, threads)
+load_graph
+import_graph
+graph_stats
+run_bfs_report
+run_components_report
+run_pagerank_report
+run_dijkstra_report
+run_sssp_report
+write_sssp_distances_csv
 ```
 
-#### Regla de rendimiento
+#### Tipos opacos
 
-No se debe cruzar la frontera FFI por cada arista. Eso degradaría el rendimiento y haría más frágil el diseño.
+`CsrGraph` se trata como tipo opaco en Rust. El acceso a offsets, vecinos y pesos queda encapsulado en C++.
+
+#### Ventaja
+
+Esta frontera evita punteros crudos en Rust y mantiene el rendimiento dentro del core C++.
