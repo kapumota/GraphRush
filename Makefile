@@ -105,3 +105,31 @@ demo-phase3-memory:
 		--iterations 20 \
 		--output reports/phase3 \
 		--measure-memory
+
+
+.PHONY: demo-phase4-benchmark
+
+demo-phase4-benchmark:
+	python scripts/benchmark_engine.py \
+		--binary rust-cli/target/release/graphrush \
+		--graph data/small/example.grcsr \
+		--algos bfs,pagerank,components \
+		--threads 1,2,4,8,16 \
+		--output reports
+
+
+.PHONY: demo-phase4-small
+
+demo-phase4-small:
+	cd rust-cli && cargo build --release
+	./rust-cli/target/release/graphrush-cli import \
+		--input data/small/example.edges \
+		--format snap \
+		--output data/small/example.grcsr \
+		--directed \
+		--deduplicate
+	./rust-cli/target/release/graphrush-cli benchmark \
+		--graph data/small/example.grcsr \
+		--algos bfs,pagerank,components \
+		--threads 1,2,4,8,16 \
+		--output reports/
