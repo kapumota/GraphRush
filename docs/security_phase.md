@@ -7,15 +7,15 @@ Demostrar una aplicación profesional de GraphRush en ciberseguridad. El módulo
 #### Modelo de grafo
 
 ```text
-usuario → grupo
-grupo → permiso
-usuario → máquina
-máquina → servicio
-servicio → base de datos
-IP → dominio
-proceso → archivo
-proceso → conexión
-cuenta → recurso crítico
+usuario -> grupo
+grupo -> permiso
+usuario -> máquina
+máquina -> servicio
+servicio -> base de datos
+IP -> dominio
+proceso -> archivo
+proceso -> conexión
+cuenta -> recurso crítico
 ```
 
 #### Formato de entrada
