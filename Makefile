@@ -133,3 +133,44 @@ demo-phase4-small:
 		--algos bfs,pagerank,components \
 		--threads 1,2,4,8,16 \
 		--output reports/
+
+
+.PHONY: demo-phase5-sssp
+
+demo-phase5-sssp:
+	cd rust-cli && cargo build --release
+	./rust-cli/target/release/graphrush-cli import \
+		--input data/control/sssp_unit.edges \
+		--format snap \
+		--output data/control/sssp_unit.grcsr \
+		--directed \
+		--deduplicate
+	./rust-cli/target/release/graphrush-cli sssp \
+		--graph data/control/sssp_unit.grcsr \
+		--source 0 \
+		--algo delta \
+		--delta 4 \
+		--threads 4 \
+		--compare \
+		--output-csv reports/sssp_distances.csv
+
+
+.PHONY: demo-phase5-weighted
+
+demo-phase5-weighted:
+	cd rust-cli && cargo build --release
+	./rust-cli/target/release/graphrush-cli import \
+		--input data/control/weighted_sssp.edges \
+		--format snap \
+		--output data/control/weighted_sssp.grcsr \
+		--directed \
+		--deduplicate \
+		--weighted
+	./rust-cli/target/release/graphrush-cli sssp \
+		--graph data/control/weighted_sssp.grcsr \
+		--source 0 \
+		--algo delta \
+		--delta 2 \
+		--threads 4 \
+		--compare \
+		--output-csv reports/weighted_delta.csv

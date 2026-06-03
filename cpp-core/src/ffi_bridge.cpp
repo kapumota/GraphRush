@@ -12,6 +12,7 @@
 #include "graphrush/CsrGraph.hpp"
 #include "graphrush/Algorithms.hpp"
 #include "graphrush/ParallelAlgorithms.hpp"
+#include "graphrush/DeltaStepping.hpp"
 #include "graphrush-cli/src/ffi.rs.h"
 
 namespace graphrush {
@@ -46,6 +47,7 @@ GraphStats to_ffi_stats(const CoreGraphStats& core_stats) {
     stats.memory_bytes = core_stats.memory_bytes;
     stats.load_time_ms = core_stats.load_time_ms;
     stats.valid = core_stats.valid;
+    stats.weighted = core_stats.weighted;
     return stats;
 }
 
@@ -61,7 +63,8 @@ GraphStats import_graph(
     rust::Str output_path,
     rust::Str format,
     bool directed,
-    bool deduplicate
+    bool deduplicate,
+    bool weighted
 ) {
     const std::string input_string(input_path.data(), input_path.size());
     const std::string output_string(output_path.data(), output_path.size());
@@ -70,6 +73,7 @@ GraphStats import_graph(
     options.format = parse_format(format);
     options.directed = directed;
     options.deduplicate = deduplicate;
+    options.weighted = weighted;
 
     const auto start = std::chrono::steady_clock::now();
     auto graph = CsrGraph::load_from_text(input_string, options);
@@ -415,6 +419,110 @@ rust::String run_parallel_pagerank_report(
 
     output << "[GraphRush] Tiempo: " << result.summary.elapsed_ms << " ms\n";
     return make_rust_string(output.str());
+}
+
+
+namespace {
+
+DijkstraOutput run_sssp_output(
+    const CsrGraph& graph,
+    const std::string& algorithm,
+    std::uint64_t source,
+    double delta,
+    std::uint32_t threads
+) {
+    if (algorithm == "dijkstra") {
+        return SequentialAlgorithms::dijkstra(graph, source);
+    }
+
+    if (algorithm == "delta") {
+        DeltaSteppingConfig config;
+        config.delta = delta;
+        config.threads = threads;
+        return DeltaStepping::sssp(graph, source, config);
+    }
+
+    throw std::runtime_error("Algoritmo SSSP no soportado: " + algorithm);
+}
+
+} // namespace
+
+rust::String run_sssp_report(
+    const CsrGraph& graph,
+    rust::Str algorithm,
+    std::uint64_t source,
+    double delta,
+    std::uint32_t threads,
+    bool compare
+) {
+    const std::string algorithm_string(algorithm.data(), algorithm.size());
+    const auto result = run_sssp_output(graph, algorithm_string, source, delta, threads);
+
+    std::ostringstream output;
+    output << "[GraphRush] SSSP completado.\n";
+    output << "[GraphRush] Algoritmo: " << algorithm_string << "\n";
+    output << "[GraphRush] Fuente: " << result.summary.source << "\n";
+    output << "[GraphRush] Nodos alcanzados: " << result.summary.reached_nodes << "\n";
+    output << "[GraphRush] Distancia máxima: " << result.summary.max_distance << "\n";
+    output << "[GraphRush] Delta: " << delta << "\n";
+    output << "[GraphRush] Hilos solicitados: " << threads << "\n";
+    output << "[GraphRush] Tiempo: " << result.summary.elapsed_ms << " ms\n";
+
+    if (compare && algorithm_string == "delta") {
+        const auto baseline = SequentialAlgorithms::dijkstra(graph, source);
+        bool equal = baseline.distances.size() == result.distances.size();
+
+        if (equal) {
+            for (std::size_t i = 0; i < baseline.distances.size(); ++i) {
+                const auto a = baseline.distances[i];
+                const auto b = result.distances[i];
+
+                if (std::isfinite(a) != std::isfinite(b)) {
+                    equal = false;
+                    break;
+                }
+
+                if (std::isfinite(a) && std::abs(a - b) > 1e-9) {
+                    equal = false;
+                    break;
+                }
+            }
+        }
+
+        output << "[GraphRush] Comparación con Dijkstra: "
+               << (equal ? "correcta" : "fallida")
+               << "\n";
+    }
+
+    return make_rust_string(output.str());
+}
+
+void write_sssp_distances_csv(
+    const CsrGraph& graph,
+    rust::Str algorithm,
+    std::uint64_t source,
+    double delta,
+    std::uint32_t threads,
+    rust::Str output_path
+) {
+    const std::string algorithm_string(algorithm.data(), algorithm.size());
+    const std::string path(output_path.data(), output_path.size());
+
+    const auto result = run_sssp_output(graph, algorithm_string, source, delta, threads);
+
+    std::ofstream output(path);
+    if (!output) {
+        throw std::runtime_error("No se pudo escribir el CSV de distancias SSSP: " + path);
+    }
+
+    output << "node,distance\n";
+    for (std::uint64_t node = 0; node < result.distances.size(); ++node) {
+        if (std::isfinite(result.distances[node])) {
+            output << node << "," << result.distances[node] << "\n";
+        } else {
+            output << node << ",inf\n";
+        }
+    }
 }
 
 } // namespace graphrush

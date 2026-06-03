@@ -8,6 +8,7 @@ pub mod ffi {
         memory_bytes: u64,
         load_time_ms: f64,
         valid: bool,
+        weighted: bool,
     }
 
     unsafe extern "C++" {
@@ -23,11 +24,11 @@ pub mod ffi {
             format: &str,
             directed: bool,
             deduplicate: bool,
+            weighted: bool,
         ) -> Result<GraphStats>;
 
         fn graph_stats(graph: &CsrGraph) -> GraphStats;
 
-        
         fn validate_graph(graph: &CsrGraph) -> bool;
 
         fn run_bfs_report(graph: &CsrGraph, source: u64) -> String;
@@ -46,5 +47,23 @@ pub mod ffi {
         fn run_parallel_bfs_report(graph: &CsrGraph, source: u64, threads: u32) -> String;
         fn run_parallel_components_report(graph: &CsrGraph, threads: u32) -> String;
         fn run_parallel_pagerank_report(graph: &CsrGraph, iterations: u32, damping: f64, threads: u32, top_k: u64) -> String;
+
+        fn run_sssp_report(
+            graph: &CsrGraph,
+            algorithm: &str,
+            source: u64,
+            delta: f64,
+            threads: u32,
+            compare: bool,
+        ) -> String;
+
+        fn write_sssp_distances_csv(
+            graph: &CsrGraph,
+            algorithm: &str,
+            source: u64,
+            delta: f64,
+            threads: u32,
+            output_path: &str,
+        ) -> Result<()>;
     }
 }

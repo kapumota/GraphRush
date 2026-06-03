@@ -14,6 +14,13 @@ struct GraphBuildOptions {
     GraphTextFormat format = GraphTextFormat::EdgeList;
     bool directed = true;
     bool deduplicate = true;
+    bool weighted = false;
+};
+
+struct WeightedEdge {
+    std::uint64_t source = 0;
+    std::uint64_t target = 0;
+    double weight = 1.0;
 };
 
 struct CoreGraphStats {
@@ -24,6 +31,7 @@ struct CoreGraphStats {
     std::uint64_t memory_bytes = 0;
     double load_time_ms = 0.0;
     bool valid = false;
+    bool weighted = false;
 };
 
 struct BfsResult {

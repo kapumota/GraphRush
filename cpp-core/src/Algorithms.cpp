@@ -225,7 +225,7 @@ DijkstraOutput SequentialAlgorithms::dijkstra(const CsrGraph& graph, std::uint64
 
             for (std::uint64_t idx = offsets[current]; idx < offsets[current + 1]; ++idx) {
                 const auto neighbor = neighbors[idx];
-                const double candidate = distance + 1.0;
+                const double candidate = distance + graph.edge_weight(idx);
 
                 if (candidate < output.distances[neighbor]) {
                     output.distances[neighbor] = candidate;

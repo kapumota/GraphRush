@@ -6,16 +6,17 @@
 
 namespace graphrush {
 
-std::vector<std::pair<std::uint64_t, std::uint64_t>> EdgeListParser::parse(
+std::vector<WeightedEdge> EdgeListParser::parse(
     const std::string& path,
-    GraphTextFormat format
+    GraphTextFormat format,
+    bool weighted
 ) {
     std::ifstream input(path);
     if (!input) {
         throw std::runtime_error("No se pudo abrir el archivo de entrada: " + path);
     }
 
-    std::vector<std::pair<std::uint64_t, std::uint64_t>> edges;
+    std::vector<WeightedEdge> edges;
     std::string line;
 
     while (std::getline(input, line)) {
@@ -32,14 +33,25 @@ std::vector<std::pair<std::uint64_t, std::uint64_t>> EdgeListParser::parse(
         }
 
         std::istringstream iss(line);
-        std::uint64_t src = 0;
-        std::uint64_t dst = 0;
+        WeightedEdge edge;
 
-        if (!(iss >> src >> dst)) {
+        if (!(iss >> edge.source >> edge.target)) {
             continue;
         }
 
-        edges.emplace_back(src, dst);
+        if (weighted) {
+            if (!(iss >> edge.weight)) {
+                edge.weight = 1.0;
+            }
+        } else {
+            edge.weight = 1.0;
+        }
+
+        if (edge.weight < 0.0) {
+            throw std::runtime_error("GraphRush no acepta pesos negativos para SSSP.");
+        }
+
+        edges.push_back(edge);
     }
 
     return edges;
