@@ -30,6 +30,9 @@ enum Commands {
 
         #[arg(long, default_value_t = true)]
         deduplicate: bool,
+
+        #[arg(long, default_value_t = false)]
+        weighted: bool,
     },
 
     Stats {
@@ -168,6 +171,29 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         use_perf: bool,
     },
+
+    Sssp {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: u64,
+
+        #[arg(long, default_value = "dijkstra")]
+        algo: String,
+
+        #[arg(long, default_value_t = 1.0)]
+        delta: f64,
+
+        #[arg(long, default_value_t = 1)]
+        threads: u32,
+
+        #[arg(long, default_value_t = false)]
+        compare: bool,
+
+        #[arg(long)]
+        output_csv: Option<String>,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -180,7 +206,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             format,
             directed,
             deduplicate,
-        } => run_import(&input, &output, &format, directed, deduplicate)?,
+            weighted,
+        } => run_import(&input, &output, &format, directed, deduplicate, weighted)?,
 
         Commands::Stats { graph, json } => run_stats(&graph, json)?,
 
@@ -244,6 +271,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             top_k,
             use_perf,
         } => run_benchmark(&graph, &algos, &threads, &output, source, iterations, top_k, use_perf)?,
+
+        Commands::Sssp {
+            graph,
+            source,
+            algo,
+            delta,
+            threads,
+            compare,
+            output_csv,
+        } => run_sssp(&graph, source, &algo, delta, threads, compare, output_csv.as_deref())?,
     }
 
     Ok(())
@@ -269,10 +306,11 @@ fn run_import(
     format: &str,
     directed: bool,
     deduplicate: bool,
+    weighted: bool,
 ) -> Result<(), Box<dyn Error>> {
     ensure_file_exists(input)?;
 
-    let stats = ffi::ffi::import_graph(input, output, format, directed, deduplicate)?;
+    let stats = ffi::ffi::import_graph(input, output, format, directed, deduplicate, weighted)?;
 
     println!("[GraphRush] Importación completada correctamente.");
     println!("[GraphRush] Archivo de salida: {output}");
@@ -443,6 +481,49 @@ fn resolve_benchmark_script() -> Result<PathBuf, Box<dyn Error>> {
     Err("No se encontró scripts/benchmark_engine.py. Ejecute desde la raíz del repositorio o conserve la estructura del proyecto.".into())
 }
 
+
+fn run_sssp(
+    path: &str,
+    source: u64,
+    algorithm: &str,
+    delta: f64,
+    threads: u32,
+    compare: bool,
+    output_csv: Option<&str>,
+) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    print!(
+        "{}",
+        ffi::ffi::run_sssp_report(
+            graph_ref,
+            algorithm,
+            source,
+            delta,
+            threads,
+            compare,
+        )
+    );
+
+    if let Some(csv_path) = output_csv {
+        ffi::ffi::write_sssp_distances_csv(
+            graph_ref,
+            algorithm,
+            source,
+            delta,
+            threads,
+            csv_path,
+        )?;
+        println!("[GraphRush] Distancias SSSP guardadas en: {csv_path}");
+    }
+
+    Ok(())
+}
+
+
 fn run_benchmark(
     graph: &str,
     algos: &str,
@@ -545,6 +626,7 @@ fn print_human_stats(stats: &ffi::ffi::GraphStats) {
     println!("[GraphRush] Memoria aproximada: {} bytes", stats.memory_bytes);
     println!("[GraphRush] Tiempo de carga: {:.4} ms", stats.load_time_ms);
     println!("[GraphRush] CSR válido: {}", if stats.valid { "sí" } else { "no" });
+    println!("[GraphRush] Grafo ponderado: {}", if stats.weighted { "sí" } else { "no" });
 }
 
 fn print_json_stats(stats: &ffi::ffi::GraphStats) {
@@ -555,6 +637,7 @@ fn print_json_stats(stats: &ffi::ffi::GraphStats) {
     println!("  \"average_degree\": {:.6},", stats.average_degree);
     println!("  \"memory_bytes\": {},", stats.memory_bytes);
     println!("  \"load_time_ms\": {:.6},", stats.load_time_ms);
-    println!("  \"valid\": {}", stats.valid);
+    println!("  \"valid\": {},", stats.valid);
+    println!("  \"weighted\": {}", stats.weighted);
     println!("}}");
 }

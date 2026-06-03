@@ -10,7 +10,9 @@ namespace graphrush {
 namespace {
 
 constexpr std::array<char, 8> MAGIC = {'G', 'R', 'C', 'S', 'R', '0', '1', '\0'};
-constexpr std::uint64_t VERSION = 1;
+constexpr std::uint64_t VERSION_UNWEIGHTED = 1;
+constexpr std::uint64_t VERSION_WEIGHTED = 2;
+constexpr std::uint64_t FLAG_WEIGHTED = 1;
 
 void write_u64(std::ofstream& output, std::uint64_t value) {
     output.write(reinterpret_cast<const char*>(&value), sizeof(value));
@@ -34,9 +36,15 @@ void BinaryGraphWriter::write(const CsrGraph& graph, const std::string& path) {
     }
 
     output.write(MAGIC.data(), static_cast<std::streamsize>(MAGIC.size()));
-    write_u64(output, VERSION);
+
+    const bool weighted = graph.has_weights();
+    write_u64(output, weighted ? VERSION_WEIGHTED : VERSION_UNWEIGHTED);
     write_u64(output, graph.node_count());
     write_u64(output, graph.edge_count());
+
+    if (weighted) {
+        write_u64(output, FLAG_WEIGHTED);
+    }
 
     const auto& offsets = graph.offsets();
     const auto& neighbors = graph.neighbors();
@@ -50,6 +58,14 @@ void BinaryGraphWriter::write(const CsrGraph& graph, const std::string& path) {
         reinterpret_cast<const char*>(neighbors.data()),
         static_cast<std::streamsize>(neighbors.size() * sizeof(std::uint64_t))
     );
+
+    if (weighted) {
+        const auto& weights = graph.weights();
+        output.write(
+            reinterpret_cast<const char*>(weights.data()),
+            static_cast<std::streamsize>(weights.size() * sizeof(double))
+        );
+    }
 
     if (!output) {
         throw std::runtime_error("No se pudo completar la escritura del archivo binario.");
@@ -69,15 +85,22 @@ std::unique_ptr<CsrGraph> BinaryGraphReader::read(const std::string& path) {
     }
 
     const std::uint64_t version = read_u64(input);
-    if (version != VERSION) {
+    if (version != VERSION_UNWEIGHTED && version != VERSION_WEIGHTED) {
         throw std::runtime_error("Versión de formato GraphRush no soportada.");
     }
 
     const std::uint64_t nodes = read_u64(input);
     const std::uint64_t edges = read_u64(input);
 
+    bool weighted = false;
+    if (version == VERSION_WEIGHTED) {
+        const auto flags = read_u64(input);
+        weighted = (flags & FLAG_WEIGHTED) != 0;
+    }
+
     std::vector<std::uint64_t> offsets(nodes + 1, 0);
     std::vector<std::uint64_t> neighbors(edges, 0);
+    std::vector<double> weights;
 
     input.read(
         reinterpret_cast<char*>(offsets.data()),
@@ -89,11 +112,23 @@ std::unique_ptr<CsrGraph> BinaryGraphReader::read(const std::string& path) {
         static_cast<std::streamsize>(neighbors.size() * sizeof(std::uint64_t))
     );
 
+    if (weighted) {
+        weights.assign(edges, 1.0);
+        input.read(
+            reinterpret_cast<char*>(weights.data()),
+            static_cast<std::streamsize>(weights.size() * sizeof(double))
+        );
+    }
+
     if (!input) {
         throw std::runtime_error("Archivo binario incompleto o corrupto.");
     }
 
-    return std::make_unique<CsrGraph>(std::move(offsets), std::move(neighbors));
+    return std::make_unique<CsrGraph>(
+        std::move(offsets),
+        std::move(neighbors),
+        std::move(weights)
+    );
 }
 
 } // namespace graphrush

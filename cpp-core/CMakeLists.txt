@@ -15,6 +15,7 @@ add_library(graphrush_core
     src/BinaryGraphIO.cpp
     src/Algorithms.cpp
     src/ParallelAlgorithms.cpp
+    src/DeltaStepping.cpp
 )
 
 target_include_directories(graphrush_core
@@ -46,10 +47,28 @@ target_link_libraries(test_parallel_algorithms
     PRIVATE graphrush_core
 )
 
+add_executable(test_delta_stepping
+    tests/test_delta_stepping.cpp
+)
+
+target_link_libraries(test_delta_stepping
+    PRIVATE graphrush_core
+)
+
+add_executable(test_weighted_graph_io
+    tests/test_weighted_graph_io.cpp
+)
+
+target_link_libraries(test_weighted_graph_io
+    PRIVATE graphrush_core
+)
+
 enable_testing()
 add_test(NAME test_graph_io COMMAND test_graph_io)
 add_test(NAME test_sequential_algorithms COMMAND test_sequential_algorithms)
 add_test(NAME test_parallel_algorithms COMMAND test_parallel_algorithms)
+add_test(NAME test_delta_stepping COMMAND test_delta_stepping)
+add_test(NAME test_weighted_graph_io COMMAND test_weighted_graph_io)
 
 
 if(OpenMP_CXX_FOUND)

@@ -224,3 +224,64 @@ Demo:
   --threads 1,2,4,8,16 \
   --output reports/
 ```
+
+
+#### Fase 5 agregada
+
+La Fase 5 incorpora SSSP con Delta-Stepping:
+
+```text
+DeltaStepping
+BucketQueue
+AtomicDistanceArray
+RelaxationEngine
+graphrush sssp
+--delta
+--compare
+--output-csv
+```
+
+Comando:
+
+```bash
+graphrush sssp \
+  --graph road-ca.gr \
+  --source 0 \
+  --algo delta \
+  --delta 4 \
+  --threads 8 \
+  --compare
+```
+
+
+#### Fase 5.1 agregada
+
+La Fase 5.1 incorpora Weighted SSSP:
+
+```text
+weighted EdgeList
+vector weights
+.grcsr versión 2 con pesos
+Dijkstra ponderado
+Delta-Stepping ponderado
+validación contra Dijkstra ponderado
+```
+
+Demo:
+
+```bash
+graphrush import \
+  --input data/control/weighted_sssp.edges \
+  --format snap \
+  --output data/control/weighted_sssp.grcsr \
+  --weighted
+
+graphrush sssp \
+  --graph data/control/weighted_sssp.grcsr \
+  --source 0 \
+  --algo delta \
+  --delta 2 \
+  --threads 8 \
+  --compare \
+  --output-csv reports/weighted_delta.csv
+```

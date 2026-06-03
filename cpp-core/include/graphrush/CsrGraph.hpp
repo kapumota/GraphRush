@@ -13,7 +13,8 @@ class CsrGraph {
 public:
     CsrGraph(
         std::vector<std::uint64_t> offsets,
-        std::vector<std::uint64_t> neighbors
+        std::vector<std::uint64_t> neighbors,
+        std::vector<double> weights = {}
     );
 
     static std::unique_ptr<CsrGraph> load_from_text(
@@ -30,15 +31,19 @@ public:
     std::uint64_t max_degree() const noexcept;
     double average_degree() const noexcept;
     std::uint64_t memory_bytes() const noexcept;
+    bool has_weights() const noexcept;
+    double edge_weight(std::uint64_t edge_index) const noexcept;
     bool validate() const noexcept;
     CoreGraphStats stats(double load_time_ms = 0.0) const noexcept;
 
     const std::vector<std::uint64_t>& offsets() const noexcept;
     const std::vector<std::uint64_t>& neighbors() const noexcept;
+    const std::vector<double>& weights() const noexcept;
 
 private:
     std::vector<std::uint64_t> offsets_;
     std::vector<std::uint64_t> neighbors_;
+    std::vector<double> weights_;
 };
 
 } // namespace graphrush

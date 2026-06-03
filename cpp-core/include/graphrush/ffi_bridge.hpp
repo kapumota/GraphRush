@@ -17,7 +17,8 @@ GraphStats import_graph(
     rust::Str output_path,
     rust::Str format,
     bool directed,
-    bool deduplicate
+    bool deduplicate,
+    bool weighted
 );
 
 GraphStats graph_stats(const CsrGraph& graph);
@@ -68,6 +69,24 @@ rust::String run_parallel_pagerank_report(
     double damping,
     std::uint32_t threads,
     std::uint64_t top_k
+);
+
+rust::String run_sssp_report(
+    const CsrGraph& graph,
+    rust::Str algorithm,
+    std::uint64_t source,
+    double delta,
+    std::uint32_t threads,
+    bool compare
+);
+
+void write_sssp_distances_csv(
+    const CsrGraph& graph,
+    rust::Str algorithm,
+    std::uint64_t source,
+    double delta,
+    std::uint32_t threads,
+    rust::Str output_path
 );
 
 } // namespace graphrush
