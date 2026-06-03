@@ -11,6 +11,7 @@
 
 #include "graphrush/CsrGraph.hpp"
 #include "graphrush/Algorithms.hpp"
+#include "graphrush/ParallelAlgorithms.hpp"
 #include "graphrush-cli/src/ffi.rs.h"
 
 namespace graphrush {
@@ -334,6 +335,86 @@ void write_dijkstra_distances_csv(
             output << node << ",inf\n";
         }
     }
+}
+
+
+rust::String run_parallel_bfs_report(
+    const CsrGraph& graph,
+    std::uint64_t source,
+    std::uint32_t threads
+) {
+    const auto result = ParallelAlgorithms::bfs_frontier(graph, source, threads);
+    std::string output;
+    output += "[GraphRush] BFS paralelo completado.\n";
+    output += "[GraphRush] Modo: frontier + OpenMP.\n";
+    output += "[GraphRush] Hilos solicitados: " + std::to_string(threads) + "\n";
+    output += "[GraphRush] Fuente: " + std::to_string(result.summary.source) + "\n";
+    output += "[GraphRush] Nodos alcanzados: " + std::to_string(result.summary.reached_nodes) + "\n";
+    output += "[GraphRush] Profundidad máxima: " + std::to_string(result.summary.max_depth) + "\n";
+    output += "[GraphRush] Tiempo: " + std::to_string(result.summary.elapsed_ms) + " ms\n";
+    return make_rust_string(output);
+}
+
+rust::String run_parallel_components_report(
+    const CsrGraph& graph,
+    std::uint32_t threads
+) {
+    const auto result =
+        ParallelAlgorithms::connected_components_label_propagation(graph, threads);
+    std::string output;
+    output += "[GraphRush] Componentes paralelos completados.\n";
+    output += "[GraphRush] Modo: label propagation + OpenMP.\n";
+    output += "[GraphRush] Hilos solicitados: " + std::to_string(threads) + "\n";
+    output += "[GraphRush] Componentes: " + std::to_string(result.summary.components) + "\n";
+    output += "[GraphRush] Componente mayor: " + std::to_string(result.summary.largest_component) + "\n";
+    output += "[GraphRush] Tiempo: " + std::to_string(result.summary.elapsed_ms) + " ms\n";
+    return make_rust_string(output);
+}
+
+rust::String run_parallel_pagerank_report(
+    const CsrGraph& graph,
+    std::uint32_t iterations,
+    double damping,
+    std::uint32_t threads,
+    std::uint64_t top_k
+) {
+    const auto result =
+        ParallelAlgorithms::pagerank_pull_atomic(graph, iterations, damping, threads);
+
+    std::vector<std::pair<double, std::uint64_t>> ranked;
+    ranked.reserve(result.scores.size());
+
+    for (std::uint64_t node = 0; node < result.scores.size(); ++node) {
+        ranked.emplace_back(result.scores[node], node);
+    }
+
+    std::sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) {
+        if (a.first == b.first) {
+            return a.second < b.second;
+        }
+        return a.first > b.first;
+    });
+
+    const std::uint64_t limit = std::min<std::uint64_t>(top_k, ranked.size());
+
+    std::ostringstream output;
+    output << "[GraphRush] PageRank paralelo completado.\n";
+    output << "[GraphRush] Modo: push con atomic + OpenMP.\n";
+    output << "[GraphRush] Hilos solicitados: " << threads << "\n";
+    output << "[GraphRush] Iteraciones: " << result.summary.iterations << "\n";
+    output << "[GraphRush] Damping: " << result.summary.damping << "\n";
+    output << "[GraphRush] Delta L1 final: " << result.summary.l1_delta << "\n";
+    output << "[GraphRush] Top-k: " << limit << "\n";
+
+    for (std::uint64_t i = 0; i < limit; ++i) {
+        output << "[GraphRush] rank=" << (i + 1)
+               << " node=" << ranked[i].second
+               << " score=" << std::fixed << std::setprecision(10) << ranked[i].first
+               << "\n";
+    }
+
+    output << "[GraphRush] Tiempo: " << result.summary.elapsed_ms << " ms\n";
+    return make_rust_string(output.str());
 }
 
 } // namespace graphrush
