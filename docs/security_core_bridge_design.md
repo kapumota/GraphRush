@@ -30,7 +30,7 @@ El CSV simbólico se convierte a:
 Este formato permite importar con:
 
 ```bash
-graphrush import --weighted true
+graphrush import --weighted
 ```
 
 #### Ejecución en core C++
