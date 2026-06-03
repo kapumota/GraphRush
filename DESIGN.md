@@ -30,7 +30,7 @@ La Fase 1.1 fortalece la ingesta de datos antes de iniciar los algoritmos:
 Los datasets reales en texto pueden ser costosos de parsear. Por eso GraphRush sigue una estrategia profesional:
 
 ```text
-texto real → parser robusto → normalización → CSR → binario .grcsr → algoritmos
+texto real -> parser robusto -> normalización -> CSR -> binario .grcsr -> algoritmos
 ```
 
 Esta idea está inspirada en motores y suites de grafos como Ligra, GBBS y GAP Benchmark Suite, donde se separa la conversión del grafo del procesamiento algorítmico.

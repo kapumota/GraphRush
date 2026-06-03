@@ -838,6 +838,7 @@ fn run_sssp(
 }
 
 
+#[allow(clippy::too_many_arguments)]
 fn run_benchmark(
     graph: &str,
     algos: &str,

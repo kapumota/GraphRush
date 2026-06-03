@@ -1,0 +1,77 @@
+name: Validación GraphRush
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  cpp-core:
+    name: Core C++20
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias C++
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ ninja-build libgomp1
+
+      - name: Configurar CMake
+        run: cmake -S cpp-core -B build/cpp -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compilar
+        run: cmake --build build/cpp
+
+      - name: Ejecutar pruebas
+        run: ctest --test-dir build/cpp --output-on-failure
+
+  rust-cli:
+    name: CLI Rust
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ ninja-build python3 libgomp1
+
+      - name: Mostrar toolchain Rust
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: Compilar CLI
+        working-directory: rust-cli
+        run: cargo build --release
+
+      - name: Ejecutar pruebas Rust
+        working-directory: rust-cli
+        run: cargo test
+
+      - name: Ejecutar Clippy
+        working-directory: rust-cli
+        run: cargo clippy --all-targets -- -D warnings
+
+  python-scripts:
+    name: Scripts Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Validar sintaxis Python
+        run: |
+          python3 -m py_compile scripts/security_pack.py
+          python3 -m py_compile scripts/benchmark_engine.py
+          python3 -m py_compile scripts/phase3_parallel_benchmark.py

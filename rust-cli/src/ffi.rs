@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 #[cxx::bridge(namespace = "graphrush")]
 pub mod ffi {
     struct GraphStats {
