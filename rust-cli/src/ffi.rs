@@ -28,5 +28,18 @@ pub mod ffi {
         fn graph_stats(graph: &CsrGraph) -> GraphStats;
 
         fn validate_graph(graph: &CsrGraph) -> bool;
+
+        fn run_bfs_report(graph: &CsrGraph, source: u64) -> String;
+        fn run_components_report(graph: &CsrGraph) -> String;
+        fn run_dijkstra_report(graph: &CsrGraph, source: u64) -> String;
+
+        fn run_bfs_json_report(graph: &CsrGraph, source: u64) -> String;
+        fn run_components_json_report(graph: &CsrGraph) -> String;
+        fn run_pagerank_top_report(graph: &CsrGraph, iterations: u32, damping: f64, top_k: u64) -> String;
+        fn run_pagerank_json_report(graph: &CsrGraph, iterations: u32, damping: f64, top_k: u64) -> String;
+        fn run_dijkstra_json_report(graph: &CsrGraph, source: u64) -> String;
+
+        fn write_bfs_distances_csv(graph: &CsrGraph, source: u64, output_path: &str) -> Result<()>;
+        fn write_dijkstra_distances_csv(graph: &CsrGraph, source: u64, output_path: &str) -> Result<()>;
     }
 }

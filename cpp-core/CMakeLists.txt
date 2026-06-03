@@ -11,6 +11,7 @@ add_library(graphrush_core
     src/GraphLoader.cpp
     src/EdgeListParser.cpp
     src/BinaryGraphIO.cpp
+    src/Algorithms.cpp
 )
 
 target_include_directories(graphrush_core
@@ -26,5 +27,14 @@ target_link_libraries(test_graph_io
     PRIVATE graphrush_core
 )
 
+add_executable(test_sequential_algorithms
+    tests/test_sequential_algorithms.cpp
+)
+
+target_link_libraries(test_sequential_algorithms
+    PRIVATE graphrush_core
+)
+
 enable_testing()
 add_test(NAME test_graph_io COMMAND test_graph_io)
+add_test(NAME test_sequential_algorithms COMMAND test_sequential_algorithms)
