@@ -1,37 +1,162 @@
 ### GraphRush
 
-#### Motor híbrido C++/Rust para análisis paralelo de grafos y ciberseguridad
+#### Motor híbrido C++20/Rust para procesamiento de grafos, benchmarking reproducible y análisis de ciberseguridad
 
-GraphRush es un motor de análisis de grafos en memoria orientado a redes reales. El núcleo algorítmico se implementa en C++20 y la CLI se implementa en Rust. Esta versión incorpora la **Fase 1.1**, que cierra formalmente la etapa de carga de grafos antes de iniciar la Fase 2.
+GraphRush es un software de procesamiento de grafos reales en memoria, diseñado con una arquitectura híbrida: un núcleo algorítmico en C++20 y una CLI en Rust conectada mediante FFI segura con `cxx`.
 
-#### Estado de esta entrega
+El proyecto permite importar grafos reales, convertirlos a una representación CSR compacta, ejecutar algoritmos secuenciales y paralelos, evaluar rendimiento de forma reproducible y aplicar el motor a un caso profesional de ciberseguridad mediante análisis de caminos de ataque y nodos críticos.
 
-Esta entrega incluye:
+GraphRush no es una demostración mínima de algoritmos. Es un sistema completo que integra:
 
 ```text
-Fase 0: arquitectura híbrida C++/Rust y frontera FFI
-Fase 1: carga de grafos reales y representación CSR
-Fase 1.1: métricas completas, salida JSON y validación reforzada
+carga de grafos reales
+formato binario .grcsr
+representación CSR
+BFS
+Connected Components
+PageRank
+Dijkstra
+Delta-Stepping
+SSSP ponderado
+paralelismo con OpenMP
+Benchmark Engine
+Security Pack
+CLI Rust
+FFI C++/Rust
+CI con GitHub Actions
 ```
 
-#### Capacidades actuales
+### Arquitectura general
+
+#### Núcleo C++20
+
+El núcleo C++20 implementa la representación interna del grafo y los algoritmos de alto rendimiento.
+
+Componentes principales:
 
 ```text
+CSRGraph
 GraphLoader
 EdgeListParser
-CSRGraph
-GraphStats
 BinaryGraphWriter
 BinaryGraphReader
-formato binario .grcsr
-CLI Rust con import, stats y validate
-salida humana y salida JSON
-medición de memoria aproximada
-medición de tiempo de carga
-validación de rutas desde Rust
+GraphStats
+SequentialAlgorithms
+ParallelAlgorithms
+DeltaStepping
+BucketQueue
+AtomicDistanceArray
+RelaxationEngine
 ```
 
-#### Comandos principales
+La representación interna usa CSR para almacenar grafos dispersos de forma compacta. El formato `.grcsr` evita reparsing repetido de texto y permite cargar grafos procesados en ejecuciones posteriores.
+
+#### CLI Rust
+
+La CLI Rust actúa como capa de usuario, validación de argumentos y orquestación de comandos.
+
+Comandos principales:
+
+```text
+import
+stats
+validate
+bfs
+components
+pagerank
+dijkstra
+sssp
+benchmark
+security
+```
+
+La CLI no manipula directamente los arreglos internos del grafo. En su lugar, invoca funciones de alto nivel expuestas desde C++ mediante `cxx`.
+
+#### Frontera FFI
+
+La frontera C++/Rust expone operaciones de alto nivel, por ejemplo:
+
+```text
+load_graph
+import_graph
+graph_stats
+run_bfs_report
+run_components_report
+run_pagerank_report
+run_dijkstra_report
+run_parallel_bfs_report
+run_parallel_pagerank_report
+run_sssp_report
+write_sssp_distances_csv
+```
+
+No se exponen punteros crudos ni recorridos internos de aristas hacia Rust.
+
+### Formatos soportados
+
+#### Entrada textual
+
+GraphRush puede importar grafos desde:
+
+```text
+EdgeList
+SNAP
+CSV
+Weighted EdgeList
+```
+
+#### Formato binario
+
+El formato interno serializado es:
+
+```text
+.grcsr
+```
+
+Este formato almacena la estructura CSR y, cuando corresponde, pesos de aristas para SSSP ponderado.
+
+### Compilación
+
+#### Requisitos
+
+```text
+C++20
+CMake
+g++
+Rust stable
+Cargo
+Python 3.8+
+OpenMP / libgomp
+```
+
+En Ubuntu:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y cmake g++ ninja-build python3 libgomp1
+```
+
+#### Compilar el core C++
+
+```bash
+cmake -S cpp-core -B build/cpp -DCMAKE_BUILD_TYPE=Release
+cmake --build build/cpp -j
+ctest --test-dir build/cpp --output-on-failure
+```
+
+#### Compilar la CLI Rust
+
+```bash
+cd rust-cli
+cargo build --release
+cargo test
+cargo clippy --all-targets -- -D warnings
+cd ..
+```
+
+### Uso básico
+
+#### Importar un grafo
 
 ```bash
 cd rust-cli
@@ -43,6 +168,14 @@ cargo run -- import \
   --directed \
   --deduplicate
 
+cd ..
+```
+
+#### Ver estadísticas
+
+```bash
+cd rust-cli
+
 cargo run -- stats \
   --graph ../data/small/example.grcsr
 
@@ -50,238 +183,378 @@ cargo run -- stats \
   --graph ../data/small/example.grcsr \
   --json
 
+cd ..
+```
+
+#### Validar grafo
+
+```bash
+cd rust-cli
+
 cargo run -- validate \
   --graph ../data/small/example.grcsr
+
+cd ..
 ```
 
-#### Salida esperada de stats
+### Algoritmos secuenciales
 
-```text
-[GraphRush] Grafo cargado correctamente.
-[GraphRush] Nodos: 6
-[GraphRush] Aristas: 8
-[GraphRush] Grado máximo: 2
-[GraphRush] Grado promedio: 1.3333
-[GraphRush] Memoria aproximada: 120 bytes
-[GraphRush] Tiempo de carga: 0.12 ms
-```
-
-#### Fases del proyecto
-
-| Fase | Nombre | Resultado |
-|---:|---|---|
-| 0 | Arquitectura híbrida C++/Rust y FFI | frontera técnica segura |
-| 1 | GraphLoader + CSRGraph | carga de grafos reales |
-| 1.1 | Métricas, JSON y validación | cierre profesional de ingesta |
-| 2 | Algoritmos secuenciales | BFS, PageRank, componentes y Dijkstra |
-| 3 | Paralelismo controlado | PageRank, BFS y componentes paralelos |
-| 4 | Benchmark Engine | evaluación reproducible |
-| 5 | Delta-Stepping SSSP | caminos mínimos paralelos |
-| 6 | Security Pack | aplicación profesional en ciberseguridad |
-| 7 | Release final | documentación, tests, benchmarks y demo |
-
-#### Verificación de cumplimiento
-
-El archivo `docs/phase1_compliance.md` resume el cumplimiento formal de la Fase 1.
-
-
-#### Fase 2 agregada
-
-La Fase 2 implementa los baselines secuenciales:
-
-```text
-BFS
-Connected Components
-PageRank
-Dijkstra
-```
-
-Comandos:
+#### BFS
 
 ```bash
-graphrush bfs --graph data/small/example.grcsr --source 0
-graphrush components --graph data/small/example.grcsr
-graphrush pagerank --graph data/small/example.grcsr --iterations 20
-graphrush dijkstra --graph data/small/example.grcsr --source 0
+cd rust-cli
+
+cargo run -- bfs \
+  --graph ../data/small/example.grcsr \
+  --source 0
+
+cd ..
 ```
 
-
-#### Fase 2.1 agregada
-
-La Fase 2.1 completa los baselines con:
-
-```text
-comparación documentada con GAPBS
-grafos de control adicionales
-salida JSON para algoritmos
-top-k PageRank
-CSV de distancias BFS
-CSV de distancias Dijkstra
-```
-
-Comandos:
+#### Connected Components
 
 ```bash
-graphrush bfs --graph data/small/example.grcsr --source 0 --json
-graphrush bfs --graph data/small/example.grcsr --source 0 --output-csv reports/bfs_distances.csv
-graphrush pagerank --graph data/small/example.grcsr --iterations 20 --top-k 5 --json
-graphrush dijkstra --graph data/small/example.grcsr --source 0 --output-csv reports/dijkstra_distances.csv
+cd rust-cli
+
+cargo run -- components \
+  --graph ../data/small/example.grcsr
+
+cd ..
 ```
 
-
-#### Fase 3 agregada
-
-La Fase 3 incorpora paralelismo controlado con OpenMP:
-
-```text
-BFS paralelo por frontier
-Connected Components paralelo por label propagation
-PageRank paralelo con OpenMP
-```
-
-Comandos:
+#### PageRank
 
 ```bash
-graphrush parallel-bfs --graph data/small/example.grcsr --source 0 --threads 8
-graphrush parallel-components --graph data/small/example.grcsr --threads 8
-graphrush parallel-pagerank --graph data/small/example.grcsr --iterations 20 --threads 8 --top-k 5
+cd rust-cli
+
+cargo run -- pagerank \
+  --graph ../data/small/example.grcsr \
+  --iterations 20 \
+  --top-k 5
+
+cd ..
 ```
 
-
-#### Fase 3.1 agregada
-
-La Fase 3.1 unifica comandos con `--threads` y agrega benchmark de paralelismo.
+#### Dijkstra
 
 ```bash
-graphrush pagerank --graph data/small/example.grcsr --iterations 30 --threads 8
-graphrush bfs --graph data/small/example.grcsr --source 0 --threads 8
-graphrush components --graph data/small/example.grcsr --threads 8
+cd rust-cli
+
+cargo run -- dijkstra \
+  --graph ../data/small/example.grcsr \
+  --source 0
+
+cd ..
 ```
 
+### Algoritmos paralelos
 
-#### Fase 3.2 agregada
+GraphRush incorpora paralelismo con OpenMP en algoritmos seleccionados.
 
-La Fase 3.2 integra `/usr/bin/time -v` en `scripts/phase3_parallel_benchmark.py` para llenar automáticamente `memory_peak_kb`.
+#### BFS paralelo por frontier
 
 ```bash
-python scripts/phase3_parallel_benchmark.py \
-  --binary ./target/release/graphrush \
-  --graph data/web-google.gr \
-  --algos bfs,pagerank,components \
-  --threads 1,2,4,8,16 \
-  --measure-memory
-```
+cd rust-cli
 
-
-#### Fase 4 agregada
-
-La Fase 4 incorpora un Benchmark Engine profesional:
-
-```text
-BenchmarkRunner
-MetricsCollector
-CSVReporter
-JSONReporter
-MarkdownReporter
-PerfSummaryReporter
-GTEPS estilo Graph500
-metodología inspirada en GAP
-cache misses con perf
-```
-
-Comando:
-
-```bash
-graphrush benchmark \
-  --graph web-google.gr \
-  --algos bfs,pagerank,components \
-  --threads 1,2,4,8,16 \
-  --output reports/
-```
-
-
-#### Fase 4.1 agregada
-
-La Fase 4.1 robustece el comando `benchmark`:
-
-```text
-resuelve scripts/benchmark_engine.py desde la raíz o desde CARGO_MANIFEST_DIR
-usa std::env::current_exe() para pasar el binario real al runner
-agrega demo completa con data/small/example.grcsr
-```
-
-Demo:
-
-```bash
-./rust-cli/target/release/graphrush-cli import \
-  --input data/small/example.edges \
-  --format snap \
-  --output data/small/example.grcsr
-
-./rust-cli/target/release/graphrush-cli benchmark \
-  --graph data/small/example.grcsr \
-  --algos bfs,pagerank,components \
-  --threads 1,2,4,8,16 \
-  --output reports/
-```
-
-
-#### Fase 5 agregada
-
-La Fase 5 incorpora SSSP con Delta-Stepping:
-
-```text
-DeltaStepping
-BucketQueue
-AtomicDistanceArray
-RelaxationEngine
-graphrush sssp
---delta
---compare
---output-csv
-```
-
-Comando:
-
-```bash
-graphrush sssp \
-  --graph road-ca.gr \
+cargo run -- bfs \
+  --graph ../data/small/example.grcsr \
   --source 0 \
-  --algo delta \
-  --delta 4 \
-  --threads 8 \
-  --compare
+  --threads 4
+
+cd ..
 ```
 
-
-#### Fase 5.1 agregada
-
-La Fase 5.1 incorpora Weighted SSSP:
-
-```text
-weighted EdgeList
-vector weights
-.grcsr versión 2 con pesos
-Dijkstra ponderado
-Delta-Stepping ponderado
-validación contra Dijkstra ponderado
-```
-
-Demo:
+#### PageRank paralelo
 
 ```bash
-graphrush import \
-  --input data/control/weighted_sssp.edges \
+cd rust-cli
+
+cargo run -- pagerank \
+  --graph ../data/small/example.grcsr \
+  --iterations 20 \
+  --threads 4 \
+  --top-k 5
+
+cd ..
+```
+
+#### Componentes conexas en paralelo
+
+```bash
+cd rust-cli
+
+cargo run -- components \
+  --graph ../data/small/example.grcsr \
+  --threads 4
+
+cd ..
+```
+
+### SSSP y Delta-Stepping
+
+GraphRush implementa Dijkstra como baseline y Delta-Stepping para SSSP ponderado.
+
+#### Importar grafo ponderado
+
+```bash
+cd rust-cli
+
+cargo run -- import \
+  --input ../data/control/weighted_sssp.edges \
   --format snap \
-  --output data/control/weighted_sssp.grcsr \
+  --output ../data/control/weighted_sssp.grcsr \
+  --directed \
+  --deduplicate \
   --weighted
 
-graphrush sssp \
-  --graph data/control/weighted_sssp.grcsr \
+cd ..
+```
+
+#### Dijkstra ponderado
+
+```bash
+cd rust-cli
+
+cargo run -- sssp \
+  --graph ../data/control/weighted_sssp.grcsr \
+  --source 0 \
+  --algo dijkstra
+
+cd ..
+```
+
+#### Delta-Stepping ponderado
+
+```bash
+cd rust-cli
+
+cargo run -- sssp \
+  --graph ../data/control/weighted_sssp.grcsr \
   --source 0 \
   --algo delta \
   --delta 2 \
-  --threads 8 \
+  --threads 4 \
   --compare \
-  --output-csv reports/weighted_delta.csv
+  --output-csv ../reports/weighted_delta.csv
+
+cd ..
+```
+
+### Benchmark Engine
+
+GraphRush incluye un motor de evaluación reproducible que genera reportes en CSV, JSON y Markdown.
+
+```bash
+cd rust-cli
+
+cargo run -- benchmark \
+  --graph ../data/small/example.grcsr \
+  --algos bfs,pagerank,components \
+  --threads 1,2,4 \
+  --output ../reports/benchmark_demo \
+  --source 0 \
+  --iterations 20 \
+  --top-k 5
+
+cd ..
+```
+
+Métricas principales:
+
+```text
+tiempo total
+throughput
+aristas procesadas por segundo
+GTEPS
+speedup
+eficiencia paralela
+memoria pico
+```
+
+### Security Pack
+
+GraphRush incluye un módulo de aplicación profesional en ciberseguridad.
+
+El Security Pack modela relaciones como:
+
+```text
+usuario -> grupo
+grupo -> permiso
+usuario -> máquina
+máquina -> servicio
+servicio -> base de datos
+IP -> máquina
+cuenta -> activo crítico
+```
+
+Ejemplo conceptual:
+
+```text
+attacker_machine -> ip_10_0_0_5 -> machine_22 -> user_15 -> group_admin -> server_db -> critical_asset
+```
+
+#### Importar grafo de seguridad
+
+```bash
+cd rust-cli
+
+cargo run -- security import \
+  --input ../data/security/security_edges.csv \
+  --output ../data/security/security.gr
+
+cd ..
+```
+
+#### Estadísticas
+
+```bash
+cd rust-cli
+
+cargo run -- security stats \
+  --graph ../data/security/security.gr
+
+cd ..
+```
+
+#### Ranking de nodos críticos
+
+```bash
+cd rust-cli
+
+cargo run -- security rank \
+  --graph ../data/security/security.gr \
+  --method pagerank \
+  --top 10
+
+cd ..
+```
+
+#### Camino de ataque
+
+```bash
+cd rust-cli
+
+cargo run -- security path \
+  --graph ../data/security/security.gr \
+  --source attacker_machine \
+  --target critical_asset \
+  --algo bfs
+
+cd ..
+```
+
+#### Reporte
+
+```bash
+cd rust-cli
+
+cargo run -- security report \
+  --graph ../data/security/security.gr \
+  --output ../reports/security_report.md
+
+cd ..
+```
+
+#### Puente al core C++
+
+El Security Pack puede convertir el grafo simbólico a un grafo numérico y ejecutar PageRank, BFS o SSSP usando el core C++ de GraphRush.
+
+```bash
+cd rust-cli
+
+cargo run -- security core-rank \
+  --graph ../data/security/security.gr \
+  --output-dir ../reports/security_core \
+  --top 10 \
+  --iterations 20 \
+  --threads 4
+
+cd ..
+```
+
+### Estructura del repositorio
+
+```text
+README.md
+LICENSE
+CHANGELOG.md
+Makefile
+
+cpp-core/
+rust-cli/
+scripts/
+data/
+
+docs/
+  architecture.md
+  ffi_boundary.md
+  evaluation.md
+  benchmarks.md
+  security_analysis.md
+  release_checklist.md
+  screenshots/
+  archive/
+
+reports/
+  final_report.md
+```
+
+### Documentación técnica
+
+```text
+docs/architecture.md
+docs/ffi_boundary.md
+docs/evaluation.md
+docs/benchmarks.md
+docs/security_analysis.md
+reports/final_report.md
+```
+
+La documentación histórica por fases se conserva en:
+
+```text
+docs/archive/phases/
+docs/archive/references/
+docs/archive/demos/
+```
+
+### Verificación local completa
+
+```bash
+cmake -S cpp-core -B build/cpp -DCMAKE_BUILD_TYPE=Release
+cmake --build build/cpp -j
+ctest --test-dir build/cpp --output-on-failure
+```
+
+```bash
+cd rust-cli
+cargo build --release
+cargo test
+cargo clippy --all-targets -- -D warnings
+cd ..
+```
+
+```bash
+python3 -m py_compile scripts/security_pack.py
+python3 -m py_compile scripts/benchmark_engine.py
+python3 -m py_compile scripts/phase3_parallel_benchmark.py
+```
+
+### Estado del proyecto
+
+GraphRush se encuentra en versión final de release académico-profesional. Incluye carga de grafos reales, algoritmos secuenciales, paralelismo, Benchmark Engine, SSSP ponderado con Delta-Stepping, Security Pack, documentación técnica y CI con GitHub Actions.
+
+### Licencia
+
+Ver `LICENSE`.
+
+### Referencias internas
+
+```text
+docs/architecture.md
+docs/ffi_boundary.md
+docs/evaluation.md
+docs/benchmarks.md
+docs/security_analysis.md
+reports/final_report.md
 ```
