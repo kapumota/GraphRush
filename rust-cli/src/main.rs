@@ -194,6 +194,134 @@ enum Commands {
         #[arg(long)]
         output_csv: Option<String>,
     },
+        Security {
+        #[command(subcommand)]
+        command: SecurityCommands,
+    },
+}
+#[derive(Subcommand)]
+enum SecurityCommands {
+    Import {
+        #[arg(long)]
+        input: String,
+
+        #[arg(long)]
+        output: String,
+    },
+
+    Stats {
+        #[arg(long)]
+        graph: String,
+    },
+
+    Rank {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value = "pagerank")]
+        method: String,
+
+        #[arg(long, default_value_t = 50)]
+        top: u32,
+    },
+
+    Path {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: String,
+
+        #[arg(long)]
+        target: String,
+
+        #[arg(long, default_value = "bfs")]
+        algo: String,
+    },
+
+    Components {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value_t = 10)]
+        min_size: u32,
+    },
+
+    ExportCsr {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        edge_list: String,
+
+        #[arg(long)]
+        mapping: String,
+
+        #[arg(long)]
+        output_csr: String,
+    },
+
+    CoreRank {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        output_dir: String,
+
+        #[arg(long, default_value_t = 20)]
+        top: u32,
+
+        #[arg(long, default_value_t = 20)]
+        iterations: u32,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+    },
+
+    CorePath {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: String,
+
+        #[arg(long)]
+        target: String,
+
+        #[arg(long)]
+        output_dir: String,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+    },
+
+    CoreSssp {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: String,
+
+        #[arg(long)]
+        output_dir: String,
+
+        #[arg(long, default_value = "delta")]
+        algo: String,
+
+        #[arg(long, default_value_t = 2.0)]
+        delta: f64,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+    },
+
+    Report {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        output: String,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -281,6 +409,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             compare,
             output_csv,
         } => run_sssp(&graph, source, &algo, delta, threads, compare, output_csv.as_deref())?,
+
+        Commands::Security { command } => run_security(command)?,
     }
 
     Ok(())
@@ -298,6 +428,190 @@ fn load_graph_ref(path: &str) -> Result<cxx::UniquePtr<ffi::ffi::CsrGraph>, Box<
     ensure_file_exists(path)?;
     let graph = ffi::ffi::load_graph(path)?;
     Ok(graph)
+}
+fn resolve_security_script() -> Result<PathBuf, Box<dyn Error>> {
+    let current_dir_candidate = PathBuf::from("scripts").join("security_pack.py");
+    if current_dir_candidate.exists() {
+        return Ok(current_dir_candidate);
+    }
+
+    let manifest_candidate = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("scripts")
+        .join("security_pack.py");
+
+    if manifest_candidate.exists() {
+        return Ok(manifest_candidate);
+    }
+
+    Err("No se encontró scripts/security_pack.py. Ejecute desde la raíz del repositorio o conserve la estructura del proyecto.".into())
+}
+
+fn run_security(command: SecurityCommands) -> Result<(), Box<dyn Error>> {
+    let script_path = resolve_security_script()?;
+    let mut process = std::process::Command::new("python3");
+    process.arg(script_path);
+
+    match command {
+        SecurityCommands::Import { input, output } => {
+            process.arg("import").arg("--input").arg(input).arg("--output").arg(output);
+        }
+
+        SecurityCommands::Stats { graph } => {
+            process.arg("stats").arg("--graph").arg(graph);
+        }
+
+        SecurityCommands::Rank { graph, method, top } => {
+            process
+                .arg("rank")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--method")
+                .arg(method)
+                .arg("--top")
+                .arg(top.to_string());
+        }
+
+        SecurityCommands::Path {
+            graph,
+            source,
+            target,
+            algo,
+        } => {
+            process
+                .arg("path")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--source")
+                .arg(source)
+                .arg("--target")
+                .arg(target)
+                .arg("--algo")
+                .arg(algo);
+        }
+
+        SecurityCommands::Components { graph, min_size } => {
+            process
+                .arg("components")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--min-size")
+                .arg(min_size.to_string());
+        }
+
+        SecurityCommands::ExportCsr {
+            graph,
+            edge_list,
+            mapping,
+            output_csr,
+        } => {
+            let current_binary = std::env::current_exe()?;
+            process
+                .arg("export-csr")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--edge-list")
+                .arg(edge_list)
+                .arg("--mapping")
+                .arg(mapping)
+                .arg("--output-csr")
+                .arg(output_csr)
+                .arg("--binary")
+                .arg(current_binary);
+        }
+
+        SecurityCommands::CoreRank {
+            graph,
+            output_dir,
+            top,
+            iterations,
+            threads,
+        } => {
+            let current_binary = std::env::current_exe()?;
+            process
+                .arg("core-rank")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--output-dir")
+                .arg(output_dir)
+                .arg("--top")
+                .arg(top.to_string())
+                .arg("--iterations")
+                .arg(iterations.to_string())
+                .arg("--threads")
+                .arg(threads.to_string())
+                .arg("--binary")
+                .arg(current_binary);
+        }
+
+        SecurityCommands::CorePath {
+            graph,
+            source,
+            target,
+            output_dir,
+            threads,
+        } => {
+            let current_binary = std::env::current_exe()?;
+            process
+                .arg("core-path")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--source")
+                .arg(source)
+                .arg("--target")
+                .arg(target)
+                .arg("--output-dir")
+                .arg(output_dir)
+
+.arg("--threads")
+                .arg(threads.to_string())
+                .arg("--binary")
+                .arg(current_binary);
+        }
+
+        SecurityCommands::CoreSssp {
+            graph,
+            source,
+            output_dir,
+            algo,
+            delta,
+            threads,
+        } => {
+            let current_binary = std::env::current_exe()?;
+            process
+                .arg("core-sssp")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--source")
+                .arg(source)
+                .arg("--output-dir")
+                .arg(output_dir)
+                .arg("--algo")
+                .arg(algo)
+                .arg("--delta")
+                .arg(delta.to_string())
+                .arg("--threads")
+                .arg(threads.to_string())
+                .arg("--binary")
+                .arg(current_binary);
+        }
+
+        SecurityCommands::Report { graph, output } => {
+            process
+                .arg("report")
+                .arg("--graph")
+                .arg(graph)
+                .arg("--output")
+                .arg(output);
+        }
+    }
+
+    let status = process.status()?;
+    if !status.success() {
+        return Err("GraphRush Security Pack no finalizó correctamente.".into());
+    }
+
+    Ok(())
 }
 
 fn run_import(
