@@ -1,4 +1,4 @@
-### GraphRush — Arquitectura final
+### GraphRush - Arquitectura final
 
 #### Visión general
 

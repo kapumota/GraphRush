@@ -1,4 +1,4 @@
-### Fase 5 — Caminos mínimos paralelos con Delta-Stepping
+### Fase 5 - Caminos mínimos paralelos con Delta-Stepping
 
 #### Objetivo
 

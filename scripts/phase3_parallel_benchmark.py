@@ -209,7 +209,7 @@ def write_markdown(rows: list[BenchmarkRow], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with path.open("w", encoding="utf-8") as f:
-        f.write("### Benchmark paralelo — Fase 3.2\n\n")
+        f.write("### Benchmark paralelo - Fase 3.2\n\n")
         f.write("#### Resultados\n\n")
         f.write("| Algoritmo | Hilos | Tiempo ms | Speedup | Eficiencia | Aristas/s | Memoria pico KB |\n")
         f.write("|---|---:|---:|---:|---:|---:|---:|\n")

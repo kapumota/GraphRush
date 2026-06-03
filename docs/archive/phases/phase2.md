@@ -1,4 +1,4 @@
-### Fase 2 — Algoritmos secuenciales de referencia
+### Fase 2 - Algoritmos secuenciales de referencia
 
 #### Objetivo
 

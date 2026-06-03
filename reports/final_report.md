@@ -1,4 +1,4 @@
-### GraphRush — Reporte final
+### GraphRush - Reporte final
 
 #### Resumen ejecutivo
 

@@ -1,4 +1,4 @@
-### Fase 4 — Benchmark Engine y evaluación reproducible
+### Fase 4 - Benchmark Engine y evaluación reproducible
 
 #### Objetivo
 

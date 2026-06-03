@@ -1,4 +1,4 @@
-### Fase 3.2 — Medición real de memoria pico
+### Fase 3.2 - Medición real de memoria pico
 
 #### Objetivo
 

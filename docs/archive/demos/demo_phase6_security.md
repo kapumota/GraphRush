@@ -1,6 +1,6 @@
-### Demo de Fase 6 — Security Pack
+### Demo de Fase 6 - Security Pack
 
-#### Paso 1 — Importar grafo de seguridad
+#### Paso 1 - Importar grafo de seguridad
 
 ```bash
 graphrush security import \
@@ -8,14 +8,14 @@ graphrush security import \
   --output data/security/security.gr
 ```
 
-#### Paso 2 — Estadísticas
+#### Paso 2 - Estadísticas
 
 ```bash
 graphrush security stats \
   --graph data/security/security.gr
 ```
 
-#### Paso 3 — Ranking de nodos críticos
+#### Paso 3 - Ranking de nodos críticos
 
 ```bash
 graphrush security rank \
@@ -24,7 +24,7 @@ graphrush security rank \
   --top 10
 ```
 
-#### Paso 4 — Camino de ataque
+#### Paso 4 - Camino de ataque
 
 ```bash
 graphrush security path \
@@ -34,7 +34,7 @@ graphrush security path \
   --algo bfs
 ```
 
-#### Paso 5 — Componentes
+#### Paso 5 - Componentes
 
 ```bash
 graphrush security components \
@@ -42,7 +42,7 @@ graphrush security components \
   --min-size 2
 ```
 
-#### Paso 6 — Reporte
+#### Paso 6 - Reporte
 
 ```bash
 graphrush security report \

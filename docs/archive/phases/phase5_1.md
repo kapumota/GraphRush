@@ -1,4 +1,4 @@
-### Fase 5.1 — Weighted SSSP
+### Fase 5.1 - Weighted SSSP
 
 #### Objetivo
 

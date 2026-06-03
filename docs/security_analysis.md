@@ -1,4 +1,4 @@
-### GraphRush — Análisis de seguridad
+### GraphRush - Análisis de seguridad
 
 #### Alcance
 

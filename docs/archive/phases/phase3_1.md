@@ -1,4 +1,4 @@
-### Fase 3.1 — Benchmark de paralelismo y comandos unificados
+### Fase 3.1 - Benchmark de paralelismo y comandos unificados
 
 #### Objetivo
 

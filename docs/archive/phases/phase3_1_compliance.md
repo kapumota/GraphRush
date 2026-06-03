@@ -25,4 +25,4 @@ rust-cli/src/main.rs
 
 #### Veredicto
 
-La Fase 3 queda cerrada funcionalmente y lista para la Fase 4 — Benchmark Engine.
+La Fase 3 queda cerrada funcionalmente y lista para la Fase 4 - Benchmark Engine.

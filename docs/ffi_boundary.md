@@ -1,4 +1,4 @@
-### GraphRush — Frontera FFI
+### GraphRush - Frontera FFI
 
 #### Objetivo
 

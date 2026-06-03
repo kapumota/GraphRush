@@ -1,4 +1,4 @@
-### Fase 4.1 — Rutas robustas del Benchmark Engine y demo completa
+### Fase 4.1 - Rutas robustas del Benchmark Engine y demo completa
 
 #### Objetivo
 

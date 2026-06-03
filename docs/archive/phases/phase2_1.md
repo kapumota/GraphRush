@@ -1,4 +1,4 @@
-### Fase 2.1 — Baselines externos, exportación de resultados y grafos de control
+### Fase 2.1 - Baselines externos, exportación de resultados y grafos de control
 
 #### Objetivo
 

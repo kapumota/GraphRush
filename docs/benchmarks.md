@@ -1,4 +1,4 @@
-### GraphRush — Benchmarks
+### GraphRush - Benchmarks
 
 #### Objetivo
 

@@ -1,4 +1,4 @@
-### Fase 1 — Carga de grafos reales y representación CSR
+### Fase 1 - Carga de grafos reales y representación CSR
 
 #### Objetivo
 

@@ -1,6 +1,6 @@
-### Demo de Fase 6.1 — Security Core Bridge
+### Demo de Fase 6.1 - Security Core Bridge
 
-#### Paso 1 — Importar grafo simbólico
+#### Paso 1 - Importar grafo simbólico
 
 ```bash
 graphrush security import \
@@ -8,7 +8,7 @@ graphrush security import \
   --output data/security/security.gr
 ```
 
-#### Paso 2 — Exportar a CSR numérico
+#### Paso 2 - Exportar a CSR numérico
 
 ```bash
 graphrush security export-csr \
@@ -18,7 +18,7 @@ graphrush security export-csr \
   --output-csr reports/security_core/security_numeric.grcsr
 ```
 
-#### Paso 3 — PageRank en core C++
+#### Paso 3 - PageRank en core C++
 
 ```bash
 graphrush security core-rank \
@@ -29,7 +29,7 @@ graphrush security core-rank \
   --threads 8
 ```
 
-#### Paso 4 — BFS en core C++
+#### Paso 4 - BFS en core C++
 
 ```bash
 graphrush security core-path \
@@ -40,7 +40,7 @@ graphrush security core-path \
   --threads 8
 ```
 
-#### Paso 5 — SSSP en core C++
+#### Paso 5 - SSSP en core C++
 
 ```bash
 graphrush security core-sssp \

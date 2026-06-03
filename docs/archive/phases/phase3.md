@@ -1,4 +1,4 @@
-### Fase 3 — Paralelismo controlado
+### Fase 3 - Paralelismo controlado
 
 #### Objetivo
 

@@ -1,4 +1,4 @@
-### Fase 6.1 — Security Graph Core Bridge
+### Fase 6.1 - Security Graph Core Bridge
 
 #### Objetivo
 

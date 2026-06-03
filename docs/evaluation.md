@@ -1,4 +1,4 @@
-### GraphRush — Evaluación
+### GraphRush - Evaluación
 
 #### Objetivo
 

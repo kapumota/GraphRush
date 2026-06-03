@@ -1,4 +1,4 @@
-### Fase 6 — Aplicación profesional en ciberseguridad
+### Fase 6 - Aplicación profesional en ciberseguridad
 
 #### Objetivo
 

@@ -4,7 +4,7 @@
 
 Ejecutar el Benchmark Engine de GraphRush usando el grafo de control `data/small/example.edges`.
 
-#### Paso 1 — Compilar CLI
+#### Paso 1 - Compilar CLI
 
 ```bash
 cd graphrush/rust-cli
@@ -12,7 +12,7 @@ cargo build --release
 cd ..
 ```
 
-#### Paso 2 — Importar grafo de ejemplo
+#### Paso 2 - Importar grafo de ejemplo
 
 ```bash
 ./rust-cli/target/release/graphrush-cli import \
@@ -23,7 +23,7 @@ cd ..
   --deduplicate
 ```
 
-#### Paso 3 — Ejecutar benchmark
+#### Paso 3 - Ejecutar benchmark
 
 ```bash
 ./rust-cli/target/release/graphrush-cli benchmark \
@@ -33,7 +33,7 @@ cd ..
   --output reports/
 ```
 
-#### Paso 4 — Revisar salidas
+#### Paso 4 - Revisar salidas
 
 ```bash
 ls reports/
