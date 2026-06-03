@@ -1,0 +1,7 @@
+source,target,relation,weight
+user_15,group_admin,member_of,1
+group_admin,server_db,has_access,1
+machine_22,user_15,logged_in_as,1
+ip_10_0_0_5,machine_22,connects_to,1
+attacker_machine,ip_10_0_0_5,reaches,1
+server_db,critical_asset,stores,1
