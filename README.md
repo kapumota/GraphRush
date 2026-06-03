@@ -127,3 +127,47 @@ graphrush bfs --graph data/small/example.grcsr --source 0 --output-csv reports/b
 graphrush pagerank --graph data/small/example.grcsr --iterations 20 --top-k 5 --json
 graphrush dijkstra --graph data/small/example.grcsr --source 0 --output-csv reports/dijkstra_distances.csv
 ```
+
+
+#### Fase 3 agregada
+
+La Fase 3 incorpora paralelismo controlado con OpenMP:
+
+```text
+BFS paralelo por frontier
+Connected Components paralelo por label propagation
+PageRank paralelo con OpenMP
+```
+
+Comandos:
+
+```bash
+graphrush parallel-bfs --graph data/small/example.grcsr --source 0 --threads 8
+graphrush parallel-components --graph data/small/example.grcsr --threads 8
+graphrush parallel-pagerank --graph data/small/example.grcsr --iterations 20 --threads 8 --top-k 5
+```
+
+
+#### Fase 3.1 agregada
+
+La Fase 3.1 unifica comandos con `--threads` y agrega benchmark de paralelismo.
+
+```bash
+graphrush pagerank --graph data/small/example.grcsr --iterations 30 --threads 8
+graphrush bfs --graph data/small/example.grcsr --source 0 --threads 8
+graphrush components --graph data/small/example.grcsr --threads 8
+```
+
+
+#### Fase 3.2 agregada
+
+La Fase 3.2 integra `/usr/bin/time -v` en `scripts/phase3_parallel_benchmark.py` para llenar automáticamente `memory_peak_kb`.
+
+```bash
+python scripts/phase3_parallel_benchmark.py \
+  --binary ./target/release/graphrush \
+  --graph data/web-google.gr \
+  --algos bfs,pagerank,components \
+  --threads 1,2,4,8,16 \
+  --measure-memory
+```

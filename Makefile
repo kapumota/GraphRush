@@ -66,3 +66,42 @@ demo-dijkstra-json:
 demo-dijkstra-csv:
 	mkdir -p reports
 	cd rust-cli && cargo run -- dijkstra --graph ../data/small/example.grcsr --source 0 --output-csv ../reports/dijkstra_distances.csv
+
+
+.PHONY: demo-parallel-bfs demo-parallel-components demo-parallel-pagerank
+
+demo-parallel-bfs:
+	cd rust-cli && cargo run -- parallel-bfs --graph ../data/small/example.grcsr --source 0 --threads 4
+
+demo-parallel-components:
+	cd rust-cli && cargo run -- parallel-components --graph ../data/small/example.grcsr --threads 4
+
+demo-parallel-pagerank:
+	cd rust-cli && cargo run -- parallel-pagerank --graph ../data/small/example.grcsr --iterations 20 --threads 4 --top-k 5
+
+
+.PHONY: demo-phase3-benchmark
+
+demo-phase3-benchmark:
+	python scripts/phase3_parallel_benchmark.py \
+		--binary rust-cli/target/release/graphrush \
+		--graph data/small/example.grcsr \
+		--algos bfs,pagerank,components \
+		--threads 1,2,4,8,16 \
+		--source 0 \
+		--iterations 20 \
+		--output reports/phase3
+
+
+.PHONY: demo-phase3-memory
+
+demo-phase3-memory:
+	python scripts/phase3_parallel_benchmark.py \
+		--binary rust-cli/target/release/graphrush \
+		--graph data/small/example.grcsr \
+		--algos bfs,pagerank,components \
+		--threads 1,2,4,8,16 \
+		--source 0 \
+		--iterations 20 \
+		--output reports/phase3 \
+		--measure-memory

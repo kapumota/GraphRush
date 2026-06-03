@@ -41,5 +41,9 @@ pub mod ffi {
 
         fn write_bfs_distances_csv(graph: &CsrGraph, source: u64, output_path: &str) -> Result<()>;
         fn write_dijkstra_distances_csv(graph: &CsrGraph, source: u64, output_path: &str) -> Result<()>;
+
+        fn run_parallel_bfs_report(graph: &CsrGraph, source: u64, threads: u32) -> String;
+        fn run_parallel_components_report(graph: &CsrGraph, threads: u32) -> String;
+        fn run_parallel_pagerank_report(graph: &CsrGraph, iterations: u32, damping: f64, threads: u32, top_k: u64) -> String;
     }
 }

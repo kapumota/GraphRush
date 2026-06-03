@@ -52,6 +52,9 @@ enum Commands {
         #[arg(long)]
         source: u64,
 
+        #[arg(long, default_value_t = 1)]
+        threads: u32,
+
         #[arg(long, default_value_t = false)]
         json: bool,
 
@@ -62,6 +65,9 @@ enum Commands {
     Components {
         #[arg(long)]
         graph: String,
+
+        #[arg(long, default_value_t = 1)]
+        threads: u32,
 
         #[arg(long, default_value_t = false)]
         json: bool,
@@ -76,6 +82,9 @@ enum Commands {
 
         #[arg(long, default_value_t = 0.85)]
         damping: f64,
+
+        #[arg(long, default_value_t = 1)]
+        threads: u32,
 
         #[arg(long, default_value_t = 10)]
         top_k: u64,
@@ -96,6 +105,42 @@ enum Commands {
 
         #[arg(long)]
         output_csv: Option<String>,
+    },
+
+    ParallelBfs {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long)]
+        source: u64,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+    },
+
+    ParallelComponents {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+    },
+
+    ParallelPagerank {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value_t = 20)]
+        iterations: u32,
+
+        #[arg(long, default_value_t = 0.85)]
+        damping: f64,
+
+        #[arg(long, default_value_t = 4)]
+        threads: u32,
+
+        #[arg(long, default_value_t = 10)]
+        top_k: u64,
     },
 }
 
@@ -118,19 +163,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Bfs {
             graph,
             source,
+            threads,
             json,
             output_csv,
-        } => run_bfs(&graph, source, json, output_csv.as_deref())?,
+        } => run_bfs(&graph, source, threads, json, output_csv.as_deref())?,
 
-        Commands::Components { graph, json } => run_components(&graph, json)?,
+        Commands::Components {
+            graph,
+            threads,
+            json,
+        } => run_components(&graph, threads, json)?,
 
         Commands::Pagerank {
             graph,
             iterations,
             damping,
+            threads,
             top_k,
             json,
-        } => run_pagerank(&graph, iterations, damping, top_k, json)?,
+        } => run_pagerank(&graph, iterations, damping, threads, top_k, json)?,
 
         Commands::Dijkstra {
             graph,
@@ -138,6 +189,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             json,
             output_csv,
         } => run_dijkstra(&graph, source, json, output_csv.as_deref())?,
+
+        Commands::ParallelBfs {
+            graph,
+            source,
+            threads,
+        } => run_parallel_bfs(&graph, source, threads)?,
+
+        Commands::ParallelComponents { graph, threads } => {
+            run_parallel_components(&graph, threads)?
+        }
+
+        Commands::ParallelPagerank {
+            graph,
+            iterations,
+            damping,
+            threads,
+            top_k,
+        } => run_parallel_pagerank(&graph, iterations, damping, threads, top_k)?,
     }
 
     Ok(())
@@ -211,6 +280,7 @@ fn run_validate(path: &str) -> Result<(), Box<dyn Error>> {
 fn run_bfs(
     path: &str,
     source: u64,
+    threads: u32,
     json: bool,
     output_csv: Option<&str>,
 ) -> Result<(), Box<dyn Error>> {
@@ -219,7 +289,9 @@ fn run_bfs(
         .as_ref()
         .ok_or("No se pudo obtener una referencia válida al grafo.")?;
 
-    if json {
+    if threads > 1 {
+        print!("{}", ffi::ffi::run_parallel_bfs_report(graph_ref, source, threads));
+    } else if json {
         print!("{}", ffi::ffi::run_bfs_json_report(graph_ref, source));
     } else {
         print!("{}", ffi::ffi::run_bfs_report(graph_ref, source));
@@ -233,13 +305,15 @@ fn run_bfs(
     Ok(())
 }
 
-fn run_components(path: &str, json: bool) -> Result<(), Box<dyn Error>> {
+fn run_components(path: &str, threads: u32, json: bool) -> Result<(), Box<dyn Error>> {
     let graph = load_graph_ref(path)?;
     let graph_ref = graph
         .as_ref()
         .ok_or("No se pudo obtener una referencia válida al grafo.")?;
 
-    if json {
+    if threads > 1 {
+        print!("{}", ffi::ffi::run_parallel_components_report(graph_ref, threads));
+    } else if json {
         print!("{}", ffi::ffi::run_components_json_report(graph_ref));
     } else {
         print!("{}", ffi::ffi::run_components_report(graph_ref));
@@ -252,6 +326,7 @@ fn run_pagerank(
     path: &str,
     iterations: u32,
     damping: f64,
+    threads: u32,
     top_k: u64,
     json: bool,
 ) -> Result<(), Box<dyn Error>> {
@@ -260,7 +335,18 @@ fn run_pagerank(
         .as_ref()
         .ok_or("No se pudo obtener una referencia válida al grafo.")?;
 
-    if json {
+    if threads > 1 {
+        print!(
+            "{}",
+            ffi::ffi::run_parallel_pagerank_report(
+                graph_ref,
+                iterations,
+                damping,
+                threads,
+                top_k,
+            )
+        );
+    } else if json {
         print!(
             "{}",
             ffi::ffi::run_pagerank_json_report(graph_ref, iterations, damping, top_k)
@@ -299,6 +385,53 @@ fn run_dijkstra(
 
     Ok(())
 }
+
+
+fn run_parallel_bfs(path: &str, source: u64, threads: u32) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    print!("{}", ffi::ffi::run_parallel_bfs_report(graph_ref, source, threads));
+    Ok(())
+}
+
+fn run_parallel_components(path: &str, threads: u32) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    print!("{}", ffi::ffi::run_parallel_components_report(graph_ref, threads));
+    Ok(())
+}
+
+fn run_parallel_pagerank(
+    path: &str,
+    iterations: u32,
+    damping: f64,
+    threads: u32,
+    top_k: u64,
+) -> Result<(), Box<dyn Error>> {
+    let graph = load_graph_ref(path)?;
+    let graph_ref = graph
+        .as_ref()
+        .ok_or("No se pudo obtener una referencia válida al grafo.")?;
+
+    print!(
+        "{}",
+        ffi::ffi::run_parallel_pagerank_report(
+            graph_ref,
+            iterations,
+            damping,
+            threads,
+            top_k
+        )
+    );
+    Ok(())
+}
+
 
 fn print_human_stats(stats: &ffi::ffi::GraphStats) {
     println!("[GraphRush] Nodos: {}", stats.nodes);
