@@ -171,3 +171,56 @@ python scripts/phase3_parallel_benchmark.py \
   --threads 1,2,4,8,16 \
   --measure-memory
 ```
+
+
+#### Fase 4 agregada
+
+La Fase 4 incorpora un Benchmark Engine profesional:
+
+```text
+BenchmarkRunner
+MetricsCollector
+CSVReporter
+JSONReporter
+MarkdownReporter
+PerfSummaryReporter
+GTEPS estilo Graph500
+metodología inspirada en GAP
+cache misses con perf
+```
+
+Comando:
+
+```bash
+graphrush benchmark \
+  --graph web-google.gr \
+  --algos bfs,pagerank,components \
+  --threads 1,2,4,8,16 \
+  --output reports/
+```
+
+
+#### Fase 4.1 agregada
+
+La Fase 4.1 robustece el comando `benchmark`:
+
+```text
+resuelve scripts/benchmark_engine.py desde la raíz o desde CARGO_MANIFEST_DIR
+usa std::env::current_exe() para pasar el binario real al runner
+agrega demo completa con data/small/example.grcsr
+```
+
+Demo:
+
+```bash
+./rust-cli/target/release/graphrush-cli import \
+  --input data/small/example.edges \
+  --format snap \
+  --output data/small/example.grcsr
+
+./rust-cli/target/release/graphrush-cli benchmark \
+  --graph data/small/example.grcsr \
+  --algos bfs,pagerank,components \
+  --threads 1,2,4,8,16 \
+  --output reports/
+```

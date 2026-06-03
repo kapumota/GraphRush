@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::error::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 mod ffi;
 
@@ -142,6 +142,32 @@ enum Commands {
         #[arg(long, default_value_t = 10)]
         top_k: u64,
     },
+
+    Benchmark {
+        #[arg(long)]
+        graph: String,
+
+        #[arg(long, default_value = "bfs,pagerank,components")]
+        algos: String,
+
+        #[arg(long, default_value = "1,2,4,8,16")]
+        threads: String,
+
+        #[arg(long, default_value = "reports")]
+        output: String,
+
+        #[arg(long, default_value_t = 0)]
+        source: u64,
+
+        #[arg(long, default_value_t = 20)]
+        iterations: u32,
+
+        #[arg(long, default_value_t = 20)]
+        top_k: u64,
+
+        #[arg(long, default_value_t = false)]
+        use_perf: bool,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -207,6 +233,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             threads,
             top_k,
         } => run_parallel_pagerank(&graph, iterations, damping, threads, top_k)?,
+
+        Commands::Benchmark {
+            graph,
+            algos,
+            threads,
+            output,
+            source,
+            iterations,
+            top_k,
+            use_perf,
+        } => run_benchmark(&graph, &algos, &threads, &output, source, iterations, top_k, use_perf)?,
     }
 
     Ok(())
@@ -381,6 +418,73 @@ fn run_dijkstra(
     if let Some(csv_path) = output_csv {
         ffi::ffi::write_dijkstra_distances_csv(graph_ref, source, csv_path)?;
         println!("[GraphRush] Distancias Dijkstra guardadas en: {csv_path}");
+    }
+
+    Ok(())
+}
+
+
+
+fn resolve_benchmark_script() -> Result<PathBuf, Box<dyn Error>> {
+    let current_dir_candidate = PathBuf::from("scripts").join("benchmark_engine.py");
+    if current_dir_candidate.exists() {
+        return Ok(current_dir_candidate);
+    }
+
+    let manifest_candidate = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("scripts")
+        .join("benchmark_engine.py");
+
+    if manifest_candidate.exists() {
+        return Ok(manifest_candidate);
+    }
+
+    Err("No se encontró scripts/benchmark_engine.py. Ejecute desde la raíz del repositorio o conserve la estructura del proyecto.".into())
+}
+
+fn run_benchmark(
+    graph: &str,
+    algos: &str,
+    threads: &str,
+    output: &str,
+    source: u64,
+    iterations: u32,
+    top_k: u64,
+    use_perf: bool,
+) -> Result<(), Box<dyn Error>> {
+    ensure_file_exists(graph)?;
+
+    let script_path = resolve_benchmark_script()?;
+    let current_binary = std::env::current_exe()?;
+
+    let mut command = std::process::Command::new("python3");
+    command
+        .arg(script_path)
+        .arg("--binary")
+        .arg(current_binary)
+        .arg("--graph")
+        .arg(graph)
+        .arg("--algos")
+        .arg(algos)
+        .arg("--threads")
+        .arg(threads)
+        .arg("--output")
+        .arg(output)
+        .arg("--source")
+        .arg(source.to_string())
+        .arg("--iterations")
+        .arg(iterations.to_string())
+        .arg("--top-k")
+        .arg(top_k.to_string());
+
+    if use_perf {
+        command.arg("--use-perf");
+    }
+
+    let status = command.status()?;
+    if !status.success() {
+        return Err("El Benchmark Engine no finalizó correctamente.".into());
     }
 
     Ok(())

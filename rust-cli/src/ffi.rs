@@ -27,6 +27,7 @@ pub mod ffi {
 
         fn graph_stats(graph: &CsrGraph) -> GraphStats;
 
+        
         fn validate_graph(graph: &CsrGraph) -> bool;
 
         fn run_bfs_report(graph: &CsrGraph, source: u64) -> String;

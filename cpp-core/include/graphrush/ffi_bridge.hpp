@@ -36,15 +36,32 @@ rust::String run_dijkstra_report(const CsrGraph& graph, std::uint64_t source);
 
 rust::String run_bfs_json_report(const CsrGraph& graph, std::uint64_t source);
 rust::String run_components_json_report(const CsrGraph& graph);
-rust::String run_pagerank_top_report(const CsrGraph& graph, std::uint32_t iterations, double damping, std::uint64_t top_k);
-rust::String run_pagerank_json_report(const CsrGraph& graph, std::uint32_t iterations, double damping, std::uint64_t top_k);
+rust::String run_pagerank_top_report(
+    const CsrGraph& graph,
+    std::uint32_t iterations,
+    double damping,
+    std::uint64_t top_k
+);
+rust::String run_pagerank_json_report(
+    const CsrGraph& graph,
+    std::uint32_t iterations,
+    double damping,
+    std::uint64_t top_k
+);
 rust::String run_dijkstra_json_report(const CsrGraph& graph, std::uint64_t source);
 
 void write_bfs_distances_csv(const CsrGraph& graph, std::uint64_t source, rust::Str output_path);
 void write_dijkstra_distances_csv(const CsrGraph& graph, std::uint64_t source, rust::Str output_path);
 
-rust::String run_parallel_bfs_report(const CsrGraph& graph, std::uint64_t source, std::uint32_t threads);
-rust::String run_parallel_components_report(const CsrGraph& graph, std::uint32_t threads);
+rust::String run_parallel_bfs_report(
+    const CsrGraph& graph,
+    std::uint64_t source,
+    std::uint32_t threads
+);
+rust::String run_parallel_components_report(
+    const CsrGraph& graph,
+    std::uint32_t threads
+);
 rust::String run_parallel_pagerank_report(
     const CsrGraph& graph,
     std::uint32_t iterations,
