@@ -1,6 +1,6 @@
 [package]
 name = "graphrush-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "CLI Rust para GraphRush, motor híbrido C++/Rust de análisis de grafos."
 

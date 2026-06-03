@@ -1,5 +1,4 @@
-# Grafo pequeño realista para validar la Fase 0.
-# Formato: source target
+# Grafo pequeño realista para validar importación SNAP/EdgeList.
 0 1
 0 2
 1 3

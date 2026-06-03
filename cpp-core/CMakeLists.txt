@@ -8,6 +8,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(graphrush_core
     src/CsrGraph.cpp
+    src/GraphLoader.cpp
+    src/EdgeListParser.cpp
+    src/BinaryGraphIO.cpp
 )
 
 target_include_directories(graphrush_core
@@ -15,13 +18,13 @@ target_include_directories(graphrush_core
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(test_csr_graph
-    tests/test_csr_graph.cpp
+add_executable(test_graph_io
+    tests/test_graph_io.cpp
 )
 
-target_link_libraries(test_csr_graph
+target_link_libraries(test_graph_io
     PRIVATE graphrush_core
 )
 
 enable_testing()
-add_test(NAME test_csr_graph COMMAND test_csr_graph)
+add_test(NAME test_graph_io COMMAND test_graph_io)

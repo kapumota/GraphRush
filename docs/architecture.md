@@ -5,7 +5,7 @@
 ```text
 ┌──────────────────────────────────────────────┐
 │              Rust CLI                         │
-│  comandos, validación, configuración, reportes│
+│  import, stats, validate, reportes            │
 └───────────────────────┬──────────────────────┘
                         │ cxx
 ┌───────────────────────▼──────────────────────┐
@@ -15,43 +15,48 @@
                         │
 ┌───────────────────────▼──────────────────────┐
 │              C++20 Core                        │
-│  CSRGraph, loaders, algoritmos y paralelismo   │
+│  CSRGraph, loaders, binario, stats             │
 └──────────────────────────────────────────────┘
 ```
 
 #### Core C++20
 
-El core contiene estructuras y algoritmos de alto rendimiento:
-
 ```text
 CSRGraph
 GraphLoader
-BFS
-PageRank
-ConnectedComponents
-Dijkstra
-DeltaStepping
+EdgeListParser
+BinaryGraphWriter
+BinaryGraphReader
+GraphStats
 ```
 
 #### CLI Rust
 
-La CLI contiene la experiencia de usuario:
-
 ```text
 graphrush import
 graphrush stats
-graphrush bfs
-graphrush pagerank
-graphrush components
-graphrush sssp
-graphrush benchmark
-graphrush security
+graphrush stats --json
+graphrush validate
 ```
 
-#### Frontera FFI
+#### Representación interna
 
-La frontera se mantiene pequeña. Rust no conoce el layout interno de CSR. C++ no delega loops críticos a Rust.
+GraphRush usa CSR:
 
-#### Decisión inicial
+```text
+offsets: tamaño n + 1
+neighbors: tamaño m
+```
 
-La Fase 0 usa `cxx` como puente. Si en fases posteriores se requiere un build CMake unificado, se puede evaluar Corrosion.
+#### Formato binario
+
+GraphRush usa un formato propio `.grcsr` con:
+
+```text
+magic header
+versión
+número de nodos
+número de aristas
+offsets
+neighbors
+```

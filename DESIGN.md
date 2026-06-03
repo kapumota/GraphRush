@@ -2,65 +2,35 @@
 
 #### Resumen
 
-GraphRush es un motor híbrido de análisis de grafos. La capa de alto rendimiento se implementa en C++20 y la capa de producto se implementa en Rust. El diseño evita exponer detalles internos del grafo a Rust, la CLI solo invoca operaciones completas sobre tipos opacos.
+GraphRush usa una arquitectura híbrida C++20/Rust. C++20 contiene el core de grafos y Rust contiene la CLI, validación, configuración y reportes.
 
-#### Principios de diseño
-
-#### Separación estricta de responsabilidades
-
-C++20 controla:
-
-- representación CSR,
-- carga eficiente,
-- algoritmos,
-- paralelismo,
-- medición de bajo nivel.
-
-Rust controla:
-
-- CLI,
-- validación de argumentos,
-- configuración,
-- reportes,
-- salida para usuario,
-- automatización de flujos.
-
-#### Frontera FFI de alto nivel
-
-La frontera FFI debe exponer únicamente:
-
-- tipos opacos,
-- funciones de alto nivel,
-- resultados simples,
-- métricas agregadas.
-
-No debe exponer:
-
-- punteros crudos,
-- iteradores C++,
-- detalles internos de CSR,
-- loops sobre vecinos,
-- memoria temporal,
-- estructuras STL por valor.
-
-#### Representación inicial del grafo
-
-La Fase 0 usa una representación CSR compacta:
+#### Decisiones principales
 
 ```text
-offsets[u] ... offsets[u + 1] define el rango de vecinos de u
-neighbors contiene todos los vecinos de forma contigua
+C++20: núcleo de grafos y algoritmos
+Rust: CLI, reportes, validación y configuración
+Python: scripts auxiliares
+Formato base: EdgeList / SNAP / CSV
+Representación interna: CSR
+Formato binario propio: .grcsr
 ```
 
-#### Evolución esperada
+#### Fase 1.1
 
-La arquitectura permite evolucionar hacia:
+La Fase 1.1 fortalece la ingesta de datos antes de iniciar los algoritmos:
 
-- formato binario `.gr`,
-- PageRank paralelo,
-- BFS por frontier,
-- Connected Components,
-- Dijkstra,
-- Delta-Stepping,
-- Security Pack,
-- API futura HTTP/gRPC.
+- `GraphStats` incluye memoria aproximada.
+- `GraphStats` incluye tiempo de carga.
+- `stats` permite salida humana y salida JSON.
+- Rust valida rutas antes de llamar al core C++.
+- El formato `.grcsr` evita parsear texto en cada ejecución.
+
+#### Razón técnica
+
+Los datasets reales en texto pueden ser costosos de parsear. Por eso GraphRush sigue una estrategia profesional:
+
+```text
+texto real → parser robusto → normalización → CSR → binario .grcsr → algoritmos
+```
+
+Esta idea está inspirada en motores y suites de grafos como Ligra, GBBS y GAP Benchmark Suite, donde se separa la conversión del grafo del procesamiento algorítmico.
