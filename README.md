@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/kapumota/GraphRush/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kapumota/GraphRush/actions/workflows/ci.yml)
 [![validation](https://github.com/kapumota/GraphRush/actions/workflows/validation.yml/badge.svg?branch=main)](https://github.com/kapumota/GraphRush/actions/workflows/validation.yml)
-[![release](https://img.shields.io/github/v/release/kapumota/GraphRush?label=release)](https://github.com/kapumota/GraphRush/releases)
-[![license](https://img.shields.io/github/license/kapumota/GraphRush)](LICENSE)
+[![release](https://img.shields.io/badge/release-v0.7--release--final-orange)](https://github.com/kapumota/GraphRush/releases)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![C++](https://img.shields.io/badge/C%2B%2B-20-blue?logo=cplusplus)
 ![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
 ![OpenMP](https://img.shields.io/badge/OpenMP-enabled-brightgreen)
