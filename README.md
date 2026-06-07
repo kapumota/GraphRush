@@ -1,5 +1,16 @@
 ### GraphRush
 
+[![CI](https://github.com/kapumota/GraphRush/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kapumota/GraphRush/actions/workflows/ci.yml)
+[![validation](https://github.com/kapumota/GraphRush/actions/workflows/validation.yml/badge.svg?branch=main)](https://github.com/kapumota/GraphRush/actions/workflows/validation.yml)
+[![release](https://img.shields.io/github/v/release/kapumota/GraphRush?label=release)](https://github.com/kapumota/GraphRush/releases)
+[![license](https://img.shields.io/github/license/kapumota/GraphRush)](LICENSE)
+![C++](https://img.shields.io/badge/C%2B%2B-20-blue?logo=cplusplus)
+![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
+![OpenMP](https://img.shields.io/badge/OpenMP-enabled-brightgreen)
+![tests](https://img.shields.io/badge/tests-CTest%20%2B%20Cargo-brightgreen)
+![benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue)
+![security](https://img.shields.io/badge/security-pack-teal)
+
 #### Motor híbrido C++20/Rust para procesamiento de grafos, benchmarking reproducible y análisis de ciberseguridad
 
 GraphRush es un software de procesamiento de grafos reales en memoria, diseñado con una arquitectura híbrida: un núcleo algorítmico en C++20 y una CLI en Rust conectada mediante FFI segura con `cxx`.
@@ -517,6 +528,25 @@ docs/archive/phases/
 docs/archive/references/
 docs/archive/demos/
 ```
+
+
+### Validación reproducible del software
+
+GraphRush se valida mediante un flujo reproducible conectado a GitHub Actions. El workflow `.github/workflows/validation.yml` ejecuta el script principal:
+
+```bash
+make validate
+```
+
+Este proceso comprueba estructura del repositorio, compilación del core C++20, pruebas con CTest, compilación de la CLI Rust, pruebas con Cargo, análisis con Clippy, sintaxis de scripts Python, importación de grafos, ejecución de algoritmos y una demo mínima del Security Pack.
+
+La validación local también puede ejecutarse con:
+
+```bash
+bash scripts/validate.sh
+```
+
+El objetivo es que los badges del README no sean solo decorativos. El estado de validación depende de comandos ejecutables y de un workflow verificable.
 
 ### Verificación local completa
 

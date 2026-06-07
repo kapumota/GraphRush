@@ -1,0 +1,32 @@
+name: validation
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validacion reproducible
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ ninja-build python3 libgomp1
+
+      - name: Mostrar toolchain Rust
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: Ejecutar validacion reproducible
+        run: bash scripts/validate.sh

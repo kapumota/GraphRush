@@ -174,3 +174,8 @@ demo-phase5-weighted:
 		--threads 4 \
 		--compare \
 		--output-csv reports/weighted_delta.csv
+
+.PHONY: validate
+
+validate:
+	bash scripts/validate.sh
