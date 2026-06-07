@@ -25,3 +25,7 @@ data/downloads/
 .DS_Store
 .vscode/
 .idea/
+
+# Caches y backups locales
+.pytest_cache/
+*.bak-badges-validation
